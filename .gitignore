@@ -1,0 +1,14 @@
+Tests/.vs
+Tests/packages
+Tests/Tests
+Tests/x64
+Tests/Tests.vcxproj.user
+
+TptpTool/.vs
+TptpTool/TptpTool
+TptpTool/x64
+TptpTool/TptpTool.vcxproj.user
+TptpTool/lastProof.html
+
+doc
+TPTP-v9.2.1
