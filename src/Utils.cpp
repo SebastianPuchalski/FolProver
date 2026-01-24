@@ -24,7 +24,7 @@ size_t getPeakMemoryUsageInBytes() {
         return usage.ru_maxrss;
 #else
         // Linux: ru_maxrss is in kilobytes
-        return usage.ru_maxrss * 1024;
+        return (size_t)usage.ru_maxrss * 1024;
 #endif
     }
     return 0;

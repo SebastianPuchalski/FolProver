@@ -9,15 +9,17 @@
 
 struct NaiveSuperpositionSolver::Clause {
     const ProofNodePtr input;
+
+    const std::string rule;
     const ClausePtr parent1;
     const ClausePtr parent2;
 
     std::vector<FormulaPtr> literals;
 
-    Clause(ProofNodePtr input) : input(input), parent1(nullptr), parent2(nullptr) {}
-    Clause(ClausePtr parent1, ClausePtr parent2 = nullptr) :
-        input(nullptr), parent1(parent1), parent2(parent2) {
-    }
+    Clause(ProofNodePtr input) :
+        input(input), parent1(nullptr), parent2(nullptr) {}
+    Clause(std::string rule, ClausePtr parent1, ClausePtr parent2 = nullptr) :
+        rule(std::move(rule)), input(nullptr), parent1(parent1), parent2(parent2) {}
 };
 
 void NaiveSuperpositionSolver::setTimeLimit(int seconds) {
@@ -42,17 +44,25 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
         assert(clause);
         assert(clause->exprType == Expression::Type::JUNCTION);
         auto junction = std::static_pointer_cast<JunctionFormula>(clause->clone());
-        ClausePtr newClause = std::make_shared<Clause>(clauses[i]);
-        newClause->literals = junction->operands;
-        bool isTautology = removeBoolLiterals(newClause->literals);
-        if (!isTautology) isTautology = handleDistinctObjects(newClause->literals);
+        ClausePtr inputClause = std::make_shared<Clause>(clauses[i]);
+        inputClause->literals = junction->operands;
+
+        std::vector<FormulaPtr> workingLiterals = junction->operands;
+        bool changed = false;
+        bool isTautology = removeBoolLiterals(workingLiterals, &changed);
+        if (!isTautology) isTautology = handleDistinctObjects(workingLiterals, &changed);
         if (!isTautology) {
-            if (newClause->literals.empty()) {
-                proofRoot = newClause;
+            ClausePtr finalClause = inputClause;
+            if (changed) {
+                finalClause = std::make_shared<Clause>("simplification", inputClause);
+                finalClause->literals = std::move(workingLiterals);
+            }
+            if (finalClause->literals.empty()) {
+                proofRoot = finalClause;
                 return FolSatSolver::Result::UNSATISFIABLE;
             }
-            standardizeVariables(newClause);
-            unprocessedClauses.push_back(newClause);
+            standardizeVariables(finalClause);
+            unprocessedClauses.push_back(finalClause);
         }
     }
 
@@ -99,14 +109,21 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
                 }
             }
             // temp. end
-            if(!isTautology) isTautology = handleDistinctObjects(inferredClause->literals);
+            std::vector<FormulaPtr> workingLiterals = inferredClause->literals;
+            bool changed = false;
+            if(!isTautology) isTautology = handleDistinctObjects(workingLiterals, &changed);
             if (!isTautology) {
-                if (inferredClause->literals.empty()) {
-                    proofRoot = inferredClause;
+                ClausePtr finalClause = inferredClause;
+                if (changed) {
+                    finalClause = std::make_shared<Clause>("simplification", inferredClause);
+                    finalClause->literals = std::move(workingLiterals);
+                }
+                if (finalClause->literals.empty()) {
+                    proofRoot = finalClause;
                     return FolSatSolver::Result::UNSATISFIABLE;
                 }
-                standardizeVariables(inferredClause);
-                unprocessedClauses.push_back(inferredClause);
+                standardizeVariables(finalClause);
+                unprocessedClauses.push_back(finalClause);
             }
         }
         processedClauses.push_back(unprocClause);
@@ -122,7 +139,7 @@ ProofNodePtr NaiveSuperpositionSolver::getProof() const {
 
 void NaiveSuperpositionSolver::applyBinaryResolution(
     const ClausePtr& clause1, const ClausePtr& clause2,
-    std::vector<ClausePtr>& resolvents) {
+    std::vector<ClausePtr>& resolvents) const {
     if (clause1 == clause2) return;
 
     auto resolve = [&](const ClausePtr& lClause, const std::vector<bool>& lSelection,
@@ -143,7 +160,8 @@ void NaiveSuperpositionSolver::applyBinaryResolution(
 
                 Substitution mgu;
                 if (unify(lLiteral, negation->child, mgu)) {
-                    auto newClause = std::make_shared<Clause>(lClause, rClause);
+                    auto rule = "resolution";
+                    auto newClause = std::make_shared<Clause>(rule, lClause, rClause);
                     for (size_t k = 0; k < lClause->literals.size(); ++k) {
                         if (k != i) {
                             auto newLiteral = substitute(lClause->literals[k], mgu);
@@ -171,7 +189,7 @@ void NaiveSuperpositionSolver::applyBinaryResolution(
 }
 
 void NaiveSuperpositionSolver::applyFactoring(
-    const ClausePtr& clause, std::vector<ClausePtr>& factors) {
+    const ClausePtr& clause, std::vector<ClausePtr>& factors) const {
     size_t literalCount = clause->literals.size();
     if (literalCount < 2) return;
 
@@ -191,7 +209,8 @@ void NaiveSuperpositionSolver::applyFactoring(
 
             Substitution mgu;
             if (unify(literal1, literal2, mgu)) {
-                auto newClause = std::make_shared<Clause>(clause);
+                auto rule = "factoring";
+                auto newClause = std::make_shared<Clause>(rule, clause);
                 for (size_t k = 0; k < literalCount; ++k) {
                     if (k != i) {
                         auto newLiteral = substitute(clause->literals[k], mgu);
@@ -208,7 +227,7 @@ void NaiveSuperpositionSolver::applyFactoring(
 
 void NaiveSuperpositionSolver::applySuperposition(
     const ClausePtr& clause1, const ClausePtr& clause2,
-    std::vector<ClausePtr>& inferredClauses) {
+    std::vector<ClausePtr>& inferredClauses) const {
     if (clause1 == clause2) return;
 
     std::function<void(ExpressionPtr, std::vector<size_t>&,
@@ -222,7 +241,8 @@ void NaiveSuperpositionSolver::applySuperposition(
         if (expression->isTerm() && expression->exprType != Expression::Type::VARIABLE) {
             Substitution mgu;
             if (unify(patternTerm, expression, mgu)) {
-                auto newClause = std::make_shared<Clause>(fromClause, intoClause);
+                auto rule = "superposition";
+                auto newClause = std::make_shared<Clause>(rule, fromClause, intoClause);
                 for (size_t i = 0; i < fromClause->literals.size(); ++i) {
                     if (i != fromLiteralIndex) {
                         auto literal = std::static_pointer_cast<Formula>(substitute(fromClause->literals[i], mgu));
@@ -326,7 +346,7 @@ void NaiveSuperpositionSolver::applySuperposition(
 }
 
 void NaiveSuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,
-    std::vector<ClausePtr>& inferredClauses) {
+    std::vector<ClausePtr>& inferredClauses) const {
     auto selectionMask = selectLiterals(clause->literals);
     auto eligibleMask = areEligibleForResolution(clause->literals, selectionMask);
     for (size_t i = 0; i < clause->literals.size(); ++i) {
@@ -338,7 +358,8 @@ void NaiveSuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,
             auto equality = std::static_pointer_cast<EqualityFormula>(negation->child);
             Substitution mgu;
             if (unify(equality->left, equality->right, mgu)) {
-                auto newClause = std::make_shared<Clause>(clause);
+                auto rule = "equality_resolution";
+                auto newClause = std::make_shared<Clause>(rule, clause);
                 for (size_t j = 0; j < clause->literals.size(); ++j) {
                     if (j != i) {
                         newClause->literals.push_back(
@@ -352,7 +373,7 @@ void NaiveSuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,
 }
 
 void NaiveSuperpositionSolver::applyEqualityFactoring(const ClausePtr& clause,
-    std::vector<ClausePtr>& inferredClauses) {
+    std::vector<ClausePtr>& inferredClauses) const {
     size_t literalCount = clause->literals.size();
     if (literalCount < 2) return;
 
@@ -375,7 +396,8 @@ void NaiveSuperpositionSolver::applyEqualityFactoring(const ClausePtr& clause,
                 auto processPartnerSide = [&](TermPtr u, TermPtr v) {
                     Substitution mgu;
                     if (unify(s, u, mgu)) {
-                        auto newClause = std::make_shared<Clause>(clause);
+                        auto rule = "equality_factoring";
+                        auto newClause = std::make_shared<Clause>(rule, clause);
                         auto tSub = substitute(t, mgu);
                         auto vSub = substitute(v, mgu);
                         auto newEquality = std::make_shared<EqualityFormula>(
@@ -418,7 +440,8 @@ void NaiveSuperpositionSolver::applyEqualityFactoring(const ClausePtr& clause,
     }
 }
 
-bool NaiveSuperpositionSolver::removeBoolLiterals(std::vector<FormulaPtr>& literals) {
+bool NaiveSuperpositionSolver::removeBoolLiterals(
+    std::vector<FormulaPtr>& literals, bool* changed) const {
     auto it = literals.begin();
     while (it != literals.end()) {
         const auto& literal = *it;
@@ -437,13 +460,17 @@ bool NaiveSuperpositionSolver::removeBoolLiterals(std::vector<FormulaPtr>& liter
                 else return true; // tautology
             }
         }
-        if (remove) it = literals.erase(it);
+        if (remove) {
+            it = literals.erase(it);
+            if (changed) *changed = true;
+        }
         else ++it;
     }
     return false; // not tautology
 }
 
-bool NaiveSuperpositionSolver::handleDistinctObjects(std::vector<FormulaPtr>& literals) {
+bool NaiveSuperpositionSolver::handleDistinctObjects(
+    std::vector<FormulaPtr>& literals, bool* changed) const {
     auto getDistinctSymbol = [](const TermPtr& term) -> std::string {
         if (term->exprType != Expression::Type::FUNCTION) return "";
         auto functionTerm = std::static_pointer_cast<FunctionTerm>(term);
@@ -451,7 +478,7 @@ bool NaiveSuperpositionSolver::handleDistinctObjects(std::vector<FormulaPtr>& li
             return functionTerm->symbol;
         }
         return "";
-        };
+    };
 
     auto it = literals.begin();
     while (it != literals.end()) {
@@ -479,6 +506,7 @@ bool NaiveSuperpositionSolver::handleDistinctObjects(std::vector<FormulaPtr>& li
                     return true;
                 }
                 it = literals.erase(it);
+                if (changed) *changed = true;
                 continue;
             }
         }
@@ -498,7 +526,7 @@ void NaiveSuperpositionSolver::standardizeVariables(ClausePtr& clause) {
 }
 
 bool NaiveSuperpositionSolver::unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2,
-    Substitution& mgu) {
+    Substitution& mgu) const {
     assert(expr1 && expr2);
 
     if (expr1->isTerm() && expr2->isTerm()) {
@@ -577,7 +605,7 @@ bool NaiveSuperpositionSolver::unify(const ExpressionPtr& expr1, const Expressio
 }
 
 bool NaiveSuperpositionSolver::performOccursCheck(const std::string& symbol,
-    const ExpressionPtr& expr, const Substitution& mgu) {
+    const ExpressionPtr& expr, const Substitution& mgu) const {
     assert(expr && !symbol.empty());
     if (!expr || symbol.empty()) return false;
 
@@ -600,7 +628,7 @@ bool NaiveSuperpositionSolver::performOccursCheck(const std::string& symbol,
 }
 
 ExpressionPtr NaiveSuperpositionSolver::substitute(const ExpressionPtr& expr,
-    const Substitution& substitution, bool inPlace) {
+    const Substitution& substitution, bool inPlace) const {
     assert(expr);
     if (!expr) return nullptr;
     if (!inPlace) {
@@ -695,7 +723,7 @@ std::vector<bool> NaiveSuperpositionSolver::areEligibleForParamodulation(
     }
 
     if (strictlyMaximal) {
-        int candidate = 0;
+        size_t candidate = 0;
         for (size_t i = 1; i < literals.size(); ++i) {
             if (lpo.isGreater(literals[i], literals[candidate])) {
                 candidate = i;
@@ -743,17 +771,20 @@ ProofNodePtr NaiveSuperpositionSolver::reconstructProof(const ClausePtr& clause,
     if (clause->literals.empty()) {
         formula = std::make_shared<BooleanFormula>(false);
     }
+    else if (clause->literals.size() == 1) {
+        formula = clause->literals.front();
+    }
     else {
         formula = std::make_shared<JunctionFormula>(
             JunctionFormula::Operator::OR, clause->literals);
     }
-    std::string rule = clause->parent2 ? "resolution" : "factoring";
     std::vector<ProofNodePtr> parents;
     if (clause->parent1) parents.push_back(reconstructProof(clause->parent1, cache));
     if (clause->parent2) parents.push_back(reconstructProof(clause->parent2, cache));
 
+    assert(formula && !parents.empty() && !clause->rule.empty());
     auto node = ProofStep::create(std::move(formula), ProofNode::Type::INFERENCE,
-        std::move(rule), std::move(parents));
+        clause->rule, std::move(parents));
     cache[clause] = node;
     return node;
 }
