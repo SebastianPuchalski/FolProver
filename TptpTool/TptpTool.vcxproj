@@ -23,7 +23,9 @@
     <ClCompile Include="..\src\ExpressionSerializer.cpp" />
     <ClCompile Include="..\src\ExpressionTransformer.cpp" />
     <ClCompile Include="..\src\Expression.cpp" />
+    <ClCompile Include="..\src\Lpo.cpp" />
     <ClCompile Include="..\src\NaiveResolutionSolver.cpp" />
+    <ClCompile Include="..\src\NaiveSuperpositionSolver.cpp" />
     <ClCompile Include="..\src\TptpTool\Lexer.cpp" />
     <ClCompile Include="..\src\TptpTool\Loader.cpp" />
     <ClCompile Include="..\src\TptpTool\main.cpp" />
@@ -38,7 +40,9 @@
     <ClInclude Include="..\src\ExpressionSerializer.hpp" />
     <ClInclude Include="..\src\ExpressionTransformer.hpp" />
     <ClInclude Include="..\src\Expression.hpp" />
+    <ClInclude Include="..\src\Lpo.hpp" />
     <ClInclude Include="..\src\NaiveResolutionSolver.hpp" />
+    <ClInclude Include="..\src\NaiveSuperpositionSolver.hpp" />
     <ClInclude Include="..\src\ProofNode.hpp" />
     <ClInclude Include="..\src\TptpTool\Lexer.hpp" />
     <ClInclude Include="..\src\TptpTool\Loader.hpp" />

@@ -1,6 +1,7 @@
 #include "Solver.hpp"
 #include "../ExpressionTransformer.hpp"
 #include "../NaiveResolutionSolver.hpp"
+#include "../NaiveSuperpositionSolver.hpp"
 #include "../Expression.hpp"
 #include "../ProofNode.hpp"
 #include "TPTPProofNode.hpp"
@@ -39,7 +40,7 @@ Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes) 
     auto problemDef = createProblemDef(annotatedFormulas);
     auto clauseNodes = convertToCnf(problemDef.formulaNodes);
 
-    NaiveResolutionSolver cnfSolver;
+    NaiveSuperpositionSolver cnfSolver;
     if (timeLimitSeconds > 0) cnfSolver.setTimeLimit(timeLimitSeconds);
     if (memoryLimitMegabytes > 0) cnfSolver.setMemoryLimit(memoryLimitMegabytes);
     FolSatSolver::Result result = cnfSolver.solve(clauseNodes);
