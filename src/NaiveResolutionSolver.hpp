@@ -42,6 +42,4 @@ private:
     ProofNodePtr reconstructProof(const ClausePtr& clause,
         std::map<ClausePtr, ProofNodePtr>& cache) const;
     bool handleDistinctObjects(std::vector<FormulaPtr>& literals);
-
-    long getCurrentMemoryUsageMB() const;
 };

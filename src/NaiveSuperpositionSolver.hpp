@@ -62,5 +62,4 @@ private:
 
     ProofNodePtr reconstructProof(const ClausePtr& clause,
         std::map<ClausePtr, ProofNodePtr>& cache) const;
-    long getCurrentMemoryUsageMB() const;
 };

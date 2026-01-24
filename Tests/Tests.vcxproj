@@ -117,6 +117,7 @@
     <ClInclude Include="..\src\TptpTool\ProofPrinter.hpp" />
     <ClInclude Include="..\src\TptpTool\Solver.hpp" />
     <ClInclude Include="..\src\TptpTool\TptpProofNode.hpp" />
+    <ClInclude Include="..\src\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Expression.cpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="..\src\TptpTool\Parser.cpp" />
     <ClCompile Include="..\src\TptpTool\ProofPrinter.cpp" />
     <ClCompile Include="..\src\TptpTool\Solver.cpp" />
+    <ClCompile Include="..\src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -160,7 +160,6 @@ Lpo::Result Lpo::compareEqualities(const ExpressionPtr& lhs, const ExpressionPtr
     assert(lhs->exprType == Expression::Type::EQUALITY);
     assert(rhs->exprType == Expression::Type::EQUALITY);
     const size_t ARITY = 2;
-
     Result cmpResult[ARITY][ARITY];
     bool lhsMask[ARITY] = {true, true};
     bool rhsMask[ARITY] = {true, true};

@@ -1,19 +1,11 @@
 #include "NaiveSuperpositionSolver.hpp"
 
 #include "ExpressionBuilder.hpp"
+#include "Utils.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <chrono>
-
-#ifdef _WIN32
-#include <windows.h>
-#include <psapi.h>
-#pragma comment(lib, "psapi.lib")
-#else
-#include <sys/resource.h>
-#include <unistd.h>
-#endif
 
 struct NaiveSuperpositionSolver::Clause {
     const ProofNodePtr input;
@@ -75,8 +67,8 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
                 }
             }
             if (memoryLimitMegabytes > 0) {
-                long currentUsage = getCurrentMemoryUsageMB();
-                if (currentUsage > memoryLimitMegabytes) {
+                auto memoryLimitBytes = memoryLimitMegabytes * 1024 * 1024;
+                if (getPeakMemoryUsageInBytes() > memoryLimitBytes) {
                     return FolSatSolver::Result::MEMORY_OUT;
                 }
             }
@@ -764,26 +756,4 @@ ProofNodePtr NaiveSuperpositionSolver::reconstructProof(const ClausePtr& clause,
         std::move(rule), std::move(parents));
     cache[clause] = node;
     return node;
-}
-
-long NaiveSuperpositionSolver::getCurrentMemoryUsageMB() const {
-#ifdef _WIN32
-    PROCESS_MEMORY_COUNTERS pmc;
-    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
-        return static_cast<long>(pmc.WorkingSetSize / (1024 * 1024));
-    }
-    return 0;
-#else
-    struct rusage usage;
-    if (getrusage(RUSAGE_SELF, &usage) == 0) {
-#ifdef __APPLE__
-        // macOS: ru_maxrss is in bytes
-        return usage.ru_maxrss / (1024 * 1024);
-#else
-        // Linux: ru_maxrss is in kilobytes
-        return usage.ru_maxrss / 1024;
-#endif
-    }
-    return 0;
-#endif
 }
