@@ -1,5 +1,5 @@
 #include "ProofPrinter.hpp"
-#include "TPTPProofNode.hpp"
+#include "TptpProofNode.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -22,11 +22,15 @@ std::string ProofPrinter::toString(const ProofNodePtr& proofRoot) {
     idCounter = 0;
     outputBuffer.str("");
     outputBuffer.clear();
+    textOutputBuffer.clear();
 
     if (format == Format::HTML) outputBuffer << getHtmlPrefix();
+
     std::unordered_set<const ProofNode*> visited;
     processOnlyTptpNodes(proofRoot, visited);
     processNodeRecursively(proofRoot);
+
+    if (format == Format::TEXT_UTF8) processTextOutputBuffer();
     if (format == Format::HTML) outputBuffer << getHtmlSuffix();
 
     return outputBuffer.str();
@@ -54,10 +58,10 @@ void ProofPrinter::processNodeRecursively(const ProofNodePtr& node) {
         }
     }
 
-    std::string id;
-    std::string role;
-    id = std::to_string(++idCounter);
+    std::string id = std::to_string(++idCounter);
     nodeIds[node.get()] = id;
+
+    std::string role;
     if (auto tptpNode = std::dynamic_pointer_cast<TptpProofNode>(node)) {
         role = tptpNode->getRole();
     }
@@ -78,58 +82,81 @@ void ProofPrinter::processNodeRecursively(const ProofNodePtr& node) {
     }
 }
 
-void ProofPrinter::nodeToTextUtf8(const ProofNodePtr& node, std::string role) {
-    auto getUtf8StrLength = [](const std::string& str) -> size_t {
+void ProofPrinter::processTextOutputBuffer() {
+    if (textOutputBuffer.empty()) return;
+
+    auto getUtf8StrLength = [](const std::string& s) -> size_t {
         size_t length = 0;
-        for (unsigned char c : str) if ((c & 0xC0) != 0x80) length++;
+        for (unsigned char c : s) if ((c & 0xC0) != 0x80) length++;
         return length;
     };
 
-    const size_t MIN_HEAD_WIDTH = 32;
-    const size_t MIN_SOURCE_COLUMN = 100;
+    const size_t MIN_HEAD_PADDING = 2;
     const size_t MIN_FORMULA_PADDING = 8;
 
-    std::string headStr = "[" + nodeIds.at(node.get()) + "] " + role + ": ";
-    auto headLength = getUtf8StrLength(headStr);
-    outputBuffer << headStr;
-    if (headLength < MIN_HEAD_WIDTH) {
-        outputBuffer << std::string(MIN_HEAD_WIDTH - headLength, ' ');
+    size_t maxHeadLength = 0;
+    size_t maxFormulaLength = 0;
+    size_t sumFormulaLength = 0;
+    for (const auto& row : textOutputBuffer) {
+        auto headLength = getUtf8StrLength(row[0]);
+        auto formulaLength = getUtf8StrLength(row[1]);
+        maxHeadLength = std::max(headLength, maxHeadLength);
+        maxFormulaLength = std::max(formulaLength, maxFormulaLength);
+        sumFormulaLength += formulaLength;
     }
-    else assert(false && "Head string exceeded MIN_HEAD_WIDTH");
+    auto averageFormulaLength = sumFormulaLength / textOutputBuffer.size();
 
+    size_t headWidth = maxHeadLength + MIN_HEAD_PADDING;
+    auto suggestedFormulaWidth = static_cast<size_t>(averageFormulaLength * 2.2);
+    size_t formulaMinWidth = std::min(suggestedFormulaWidth, maxFormulaLength);
+
+    for (const auto& row : textOutputBuffer) {
+        const std::string& head = row[0];
+        const std::string& formula = row[1];
+        const std::string& source = row[2];
+
+        size_t headPadding = headWidth - getUtf8StrLength(head);
+        outputBuffer << head << std::string(headPadding, ' ');
+
+        size_t formulaLength = getUtf8StrLength(formula);
+        size_t formulaPadding = MIN_FORMULA_PADDING;
+        if (formulaLength < formulaMinWidth) {
+            formulaPadding += (formulaMinWidth - formulaLength);
+        }
+        outputBuffer << formula << std::string(formulaPadding, ' ');
+
+        outputBuffer << source << "\n";
+    }
+}
+
+void ProofPrinter::nodeToTextUtf8(const ProofNodePtr& node, std::string role) {
+    std::string headStr = "[" + nodeIds.at(node.get()) + "] " + role + ":";
     std::string formulaStr = exprPrinter.toString(node->getFormula());
-    auto formulaLength = getUtf8StrLength(formulaStr);
-    outputBuffer << formulaStr;
 
-    size_t currentColumn = std::max(headLength, MIN_HEAD_WIDTH) + formulaLength;
-    size_t padding = MIN_FORMULA_PADDING;
-    if (currentColumn + MIN_FORMULA_PADDING < MIN_SOURCE_COLUMN) {
-        padding = (MIN_SOURCE_COLUMN - currentColumn);
-    }
-
-    outputBuffer << std::string(padding, ' ') << "{ ";
-
+    std::ostringstream sourceStream;
+    sourceStream << "{ ";
     if (auto tptpNode = std::dynamic_pointer_cast<TptpProofNode>(node)) {
         std::string path = tptpNode->getSourceFile();
         std::replace(path.begin(), path.end(), '\\', '/');
-        outputBuffer << tptpNode->getName() << " | " << path;
+        sourceStream << tptpNode->getName() << " | " << path;
     }
     else if (auto stepNode = std::dynamic_pointer_cast<ProofStep>(node)) {
-        outputBuffer << stepNode->getRule();
+        sourceStream << stepNode->getRule();
         const auto& parents = stepNode->getParents();
         assert(!parents.empty());
-        outputBuffer << " [";
+        sourceStream << " [";
         for (size_t i = 0; i < parents.size(); ++i) {
-            outputBuffer << nodeIds.at(parents[i].get());
-            if (i < parents.size() - 1) outputBuffer << ", ";
+            sourceStream << nodeIds.at(parents[i].get());
+            if (i < parents.size() - 1) sourceStream << ", ";
         }
-        outputBuffer << "]";
+        sourceStream << "]";
     }
     else {
-        outputBuffer << "unknown";
+        sourceStream << "unknown";
     }
+    sourceStream << " }";
 
-    outputBuffer << " }\n";
+    textOutputBuffer.push_back({ std::move(headStr), std::move(formulaStr), sourceStream.str() });
 }
 
 void ProofPrinter::nodeToTstp(const ProofNodePtr& node, std::string role) {

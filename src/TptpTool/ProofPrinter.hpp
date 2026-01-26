@@ -32,10 +32,13 @@ private:
     int idCounter;
 
     std::ostringstream outputBuffer;
+    std::vector<std::vector<std::string>> textOutputBuffer;
 
     void processOnlyTptpNodes(const ProofNodePtr& node,
         std::unordered_set<const ProofNode*>& visited);
     void processNodeRecursively(const ProofNodePtr& node);
+
+    void processTextOutputBuffer();
 
     void nodeToTextUtf8(const ProofNodePtr& node, std::string role);
     void nodeToTstp(const ProofNodePtr& node, std::string role);

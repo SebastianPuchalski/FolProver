@@ -214,7 +214,7 @@ ExpressionPrinter::Config ExpressionPrinter::Config::tptp() {
         auto isNumeric = [](const std::string& str) -> bool {
             if (str.empty()) return false;
             bool isMinus = str.front() == '-';
-            if (str.size() <= isMinus) return false;
+            if (str.size() <= (int)isMinus) return false;
             if (str[isMinus] == '.') return false;
             if (str.back() == '.') return false;
             bool dotSeen = false;
@@ -229,7 +229,11 @@ ExpressionPrinter::Config ExpressionPrinter::Config::tptp() {
             return true;
         };
 
-        if (type == SymbolType::VARIABLE) return symbol;
+        if (type == SymbolType::VARIABLE) {
+            bool isUpper = (symbol.front() >= 'A' && symbol.front() <= 'Z');
+            assert(isUpper && "TPTP variable must start with Upper Case (A-Z)");
+            return symbol;
+        }
         if (type == SymbolType::DISTINCT_OBJECT) {
             if ((symbol.size() >= 2 && symbol.front() == '"' && symbol.back() == '"') ||
                 isNumeric(symbol)) {
