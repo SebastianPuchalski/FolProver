@@ -55,6 +55,8 @@ private:
     TermPtr parseTerm();
     std::vector<TermPtr> parseTermList();
     std::vector<std::string> parseVariableList();
+
+    std::string normalizeSymbol(const std::string& text) const;
 };
 
 } // namespace TptpTool

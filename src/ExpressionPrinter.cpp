@@ -4,6 +4,35 @@
 #include <cstdlib>
 #include <sstream>
 
+namespace {
+    std::string textSymbolProc(const std::string& symbol, ExpressionPrinter::Config::SymbolType type) {
+        if (symbol.empty()) return "!!!EMPTY_SYMBOL!!!";
+        if (type == ExpressionPrinter::Config::SymbolType::VARIABLE ||
+            type == ExpressionPrinter::Config::SymbolType::DISTINCT_OBJECT) {
+            return symbol;
+        }
+
+        bool safe = true;
+        for (char c : symbol) {
+            if (!isalnum(static_cast<unsigned char>(c)) && c != '_') {
+                safe = false;
+                break;
+            }
+        }
+        if (safe) return symbol;
+
+        std::string result;
+        result.reserve(symbol.size() + 2);
+        result += "'";
+        for (char c : symbol) {
+            if (c == '\'' || c == '\\') result += '\\';
+            result += c;
+        }
+        result += "'";
+        return result;
+    }
+}
+
 ExpressionPrinter::Config ExpressionPrinter::Config::text() {
     Config c;
 
@@ -35,6 +64,34 @@ ExpressionPrinter::Config ExpressionPrinter::Config::text() {
 
     c.nullPlaceholder = "!!!NULL!!!";
     c.errorPlaceholder = "!!!ERROR!!!";
+
+    c.symbolProc = textSymbolProc;
+    return c;
+}
+
+ExpressionPrinter::Config ExpressionPrinter::Config::textUtf8() {
+    Config c = text();
+
+    c.explicitPrecedence = false;
+    c.explicitAssociativity = false;
+    c.explicitRightAssociativity = false;
+    c.explicitStructure = false;
+
+    c.trueValue = u8"\u22A4";
+    c.falseValue = u8"\u22A5";
+
+    c.notOp = u8"\u00AC";
+    c.andOp = u8" \u2227 ";
+    c.orOp = u8" \u2228 ";
+    c.impOp = u8" \u21D2 ";
+    c.eqvOp = u8" \u21D4 ";
+    c.xorOp = u8" \u2295 ";
+    c.eqOp = " = ";
+
+    c.forallOp = u8"\u2200";
+    c.existsOp = u8"\u2203";
+    c.quantSeparator = "";
+
     return c;
 }
 
@@ -68,6 +125,7 @@ ExpressionPrinter::Config ExpressionPrinter::Config::latex(LatexStyle style) {
     c.errorPlaceholder = "{\\color{red}\\textbf{!!!ERROR!!!}}";
 
     c.symbolProc = [](const std::string& symbol, SymbolType type) -> std::string {
+        if (symbol.empty()) return "!!!EMPTY_SYMBOL!!!";
         static const std::string whiteList = ".:;?!@()[]";
         static const std::string greyList = "\"";
         std::string sanitized;
@@ -99,7 +157,7 @@ ExpressionPrinter::Config ExpressionPrinter::Config::latex(LatexStyle style) {
             return "\\mathtt{" + sanitized + "}";
         }
         return "\\mathrm{" + sanitized + "}";
-        };
+    };
 
     switch (style) {
     case LatexStyle::STANDARD:
@@ -150,40 +208,60 @@ ExpressionPrinter::Config ExpressionPrinter::Config::tptp() {
     c.nullPlaceholder = "$null";
     c.errorPlaceholder = "$error";
 
-    auto isNumeric = [](const std::string& str) {
-        if (str.empty()) return false;
-        char* end = nullptr;
-        std::strtod(str.c_str(), &end);
-        return end != str.c_str() && *end == '\0';
+    c.symbolProc = [](const std::string& symbol, SymbolType type) -> std::string {
+        if (symbol.empty()) return "!!!EMPTY_SYMBOL!!!";
+
+        auto isNumeric = [](const std::string& str) -> bool {
+            if (str.empty()) return false;
+            bool isMinus = str.front() == '-';
+            if (str.size() <= isMinus) return false;
+            if (str[isMinus] == '.') return false;
+            if (str.back() == '.') return false;
+            bool dotSeen = false;
+            for (size_t i = isMinus; i < str.size(); ++i) {
+                char c = str[i];
+                if (c == '.') {
+                    if (dotSeen) return false;
+                    dotSeen = true;
+                }
+                else if (c < '0' || c > '9') return false;
+            }
+            return true;
         };
 
-    c.symbolProc = [isNumeric](const std::string& symbol, SymbolType type) -> std::string {
         if (type == SymbolType::VARIABLE) return symbol;
         if (type == SymbolType::DISTINCT_OBJECT) {
             if ((symbol.size() >= 2 && symbol.front() == '"' && symbol.back() == '"') ||
                 isNumeric(symbol)) {
                 return symbol;
             }
-            return "\"" + symbol + "\"";
+            std::string result;
+            result.reserve(symbol.size() + 2);
+            result += "\"";
+            for (char c : symbol) {
+                if (c == '"' || c == '\\') result += '\\';
+                result += c;
+            }
+            result += '"';
+            return result;
         }
-        if (symbol.empty()) return "''";
+
         bool safe = islower(static_cast<unsigned char>(symbol[0]));
         for (size_t i = 0; safe && i < symbol.size(); ++i) {
-            if (!isalnum(static_cast<unsigned char>(symbol[i]))
-                && symbol[i] != '_') {
+            if (!isalnum(static_cast<unsigned char>(symbol[i])) && symbol[i] != '_') {
                 safe = false;
             }
         }
         if (safe) return symbol;
-        std::string out = "'";
-        out.reserve(symbol.size() + 2);
+        std::string result = "'";
+        result.reserve(symbol.size() + 2);
         for (char c : symbol) {
-            if (c == '\'' || c == '\\') out += '\\';
-            out += c;
+            if (c == '\'' || c == '\\') result += '\\';
+            result += c;
         }
-        out += "'";
-        return out;
-        };
+        result += "'";
+        return result;
+    };
 
     return c;
 }

@@ -134,7 +134,7 @@ inline void saveProof(const std::string& proof, std::string fileName) {
         outFile << proof;
     }
     else {
-        throw std::runtime_error("Cannot open HTML file: " + fileName);
+        throw std::runtime_error("Cannot open file: " + fileName);
     }
 }
 
@@ -166,6 +166,10 @@ int main(int argc, char* argv[]) {
         Solver::OutStatus status = solver.solve(options.timeLimitSeconds, options.memoryLimit);
         printStatus(status, options.filePath);
         if (options.printProof) {
+            auto textProof = solver.getTextProof();
+            if (!textProof.empty()) {
+                saveProof(textProof, "lastProof.txt");
+            }
             auto tstpProof = solver.getTstpProof();
             if (!tstpProof.empty()) {
                 printProof(tstpProof);

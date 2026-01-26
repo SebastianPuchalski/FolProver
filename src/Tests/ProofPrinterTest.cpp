@@ -37,7 +37,7 @@ TEST_F(ProofPrinterTest, FileBasedAtomIsCnf) {
     std::string output = normalize(printer.toString(node));
 
     // Expect: cnf(ax1, axiom, p(a), file('test.p', ax1)).
-    EXPECT_NE(output.find("cnf(ax1, axiom"), std::string::npos);
+    EXPECT_NE(output.find("cnf(1, axiom"), std::string::npos);
     EXPECT_NE(output.find("file('test.p', ax1))."), std::string::npos);
 }
 
@@ -57,7 +57,7 @@ TEST_F(ProofPrinterTest, FileBasedComplexFormulaIsFof) {
     std::string output = normalize(printer.toString(node));
 
     // Expect: fof(f1, hypothesis, ..., file('logic.p', f1)).
-    EXPECT_NE(output.find("fof(f1, hypothesis"), std::string::npos);
+    EXPECT_NE(output.find("fof(1, hypothesis"), std::string::npos);
     EXPECT_NE(output.find("file('logic.p', f1))."), std::string::npos);
 }
 
@@ -75,7 +75,7 @@ TEST_F(ProofPrinterTest, FileBasedConjecture) {
 
     std::string output = normalize(printer.toString(node));
 
-    EXPECT_NE(output.find("fof(conj, conjecture"), std::string::npos);
+    EXPECT_NE(output.find("fof(1, conjecture"), std::string::npos);
     EXPECT_NE(output.find("file('prob.p', conj))."), std::string::npos);
 }
 
@@ -138,11 +138,11 @@ TEST_F(ProofPrinterTest, ParentReference_FileToInference) {
     std::string output = normalize(printer.toString(child));
 
     // Check presence of both lines
-    EXPECT_NE(output.find("cnf(ax1, axiom"), std::string::npos);
-    EXPECT_NE(output.find("cnf(1, plain"), std::string::npos);
+    EXPECT_NE(output.find("cnf(1, axiom"), std::string::npos);
+    EXPECT_NE(output.find("cnf(2, plain"), std::string::npos);
 
     // Check Link: inference(mp, [], [ax1])
-    EXPECT_NE(output.find("inference(mp, [], [ax1])"), std::string::npos);
+    EXPECT_NE(output.find("inference(mp, [], [1])"), std::string::npos);
 }
 
 // Test 7: Branching (Two Parents)

@@ -33,6 +33,7 @@ public:
 
     explicit Solver(std::string inFilePath, std::string tptpDir, bool prepareProof = false);
 
+    std::string getTextProof() const;
     std::string getTstpProof() const;
     std::string getHtmlProof() const;
     OutStatus solve(int timeLimitSeconds = -1, int memoryLimitMegabytes = -1);
@@ -42,6 +43,7 @@ private:
     const std::string tptpDir;
     const bool prepareProof;
 
+    std::string textProof;
     std::string tstpProof;
     std::string htmlProof;
 

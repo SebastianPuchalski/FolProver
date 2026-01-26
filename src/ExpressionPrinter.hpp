@@ -53,6 +53,11 @@ public:
         static Config text();
 
         /**
+         * Configures the printer for UTF-8 text format.
+         */
+        static Config textUtf8();
+
+        /**
          * Configures the printer for LaTeX output.
          * STANDARD produces clean, textbook-style mathematical formulas.
          * COMPUTER_SCIENCE prioritizes explicit structure (parentheses) and uses

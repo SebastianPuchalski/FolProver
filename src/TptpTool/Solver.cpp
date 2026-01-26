@@ -18,6 +18,10 @@ Solver::Solver(std::string inFilePath, std::string tptpDir, bool prepareProof)
     : inFilePath(std::move(inFilePath)), tptpDir(std::move(tptpDir)), prepareProof(prepareProof) {
 }
 
+std::string Solver::getTextProof() const {
+    return textProof;
+}
+
 std::string Solver::getTstpProof() const {
     return tstpProof;
 }
@@ -67,6 +71,8 @@ Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes) 
     if (prepareProof) {
         ProofNodePtr proofRoot = cnfSolver.getProof();
         if (proofRoot) {
+            ProofPrinter textPrinter(ProofPrinter::Format::TEXT_UTF8);
+            this->textProof = textPrinter.toString(proofRoot);
             ProofPrinter tstpPrinter(ProofPrinter::Format::TSTP);
             this->tstpProof = tstpPrinter.toString(proofRoot);
             ProofPrinter htmlPrinter(ProofPrinter::Format::HTML);

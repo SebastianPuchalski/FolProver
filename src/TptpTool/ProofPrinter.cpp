@@ -8,15 +8,17 @@
 namespace TptpTool {
 
 ProofPrinter::ProofPrinter(Format format) :
-    format(format), idCounter(0), exprPrinter(format == Format::TSTP ?
-        ExpressionPrinter::Config::tptp() : ExpressionPrinter::Config::latex()) {
+    format(format), idCounter(0),
+    exprPrinter(
+        format == Format::TEXT_UTF8 ? ExpressionPrinter::Config::textUtf8() :
+        format == Format::TSTP      ? ExpressionPrinter::Config::tptp() :
+        ExpressionPrinter::Config::latex()) {
 }
 
 std::string ProofPrinter::toString(const ProofNodePtr& proofRoot) {
     if (!proofRoot) return "";
 
     nodeIds.clear();
-    reservedIds.clear();
     idCounter = 0;
     outputBuffer.str("");
     outputBuffer.clear();
@@ -54,16 +56,12 @@ void ProofPrinter::processNodeRecursively(const ProofNodePtr& node) {
 
     std::string id;
     std::string role;
+    id = std::to_string(++idCounter);
+    nodeIds[node.get()] = id;
     if (auto tptpNode = std::dynamic_pointer_cast<TptpProofNode>(node)) {
-        id = tptpNode->getName();
-        assert(reservedIds.count(id) == 0);
         role = tptpNode->getRole();
     }
     else {
-        do {
-            const std::string idPrefix = "";
-            id = idPrefix + std::to_string(++idCounter);
-        } while (reservedIds.count(id));
         switch (node->getType()) {
         case ProofNode::Type::CONJECTURE: role = "conjecture"; break;
         case ProofNode::Type::NEGATED_CONJECTURE: role = "negated_conjecture"; break;
@@ -71,11 +69,67 @@ void ProofPrinter::processNodeRecursively(const ProofNodePtr& node) {
         case ProofNode::Type::INFERENCE: default: role = "plain"; break;
         }
     }
-    nodeIds[node.get()] = id;
-    reservedIds.insert(id);
 
-    if (format == Format::TSTP) nodeToTstp(node, role);
-    else if (format == Format::HTML) nodeToHtml(node, role);
+    switch (format) {
+    case Format::TEXT_UTF8: nodeToTextUtf8(node, role); break;
+    case Format::TSTP:      nodeToTstp(node, role); break;
+    case Format::HTML:      nodeToHtml(node, role); break;
+    default: assert(false);
+    }
+}
+
+void ProofPrinter::nodeToTextUtf8(const ProofNodePtr& node, std::string role) {
+    auto getUtf8StrLength = [](const std::string& str) -> size_t {
+        size_t length = 0;
+        for (unsigned char c : str) if ((c & 0xC0) != 0x80) length++;
+        return length;
+    };
+
+    const size_t MIN_HEAD_WIDTH = 32;
+    const size_t MIN_SOURCE_COLUMN = 100;
+    const size_t MIN_FORMULA_PADDING = 8;
+
+    std::string headStr = "[" + nodeIds.at(node.get()) + "] " + role + ": ";
+    auto headLength = getUtf8StrLength(headStr);
+    outputBuffer << headStr;
+    if (headLength < MIN_HEAD_WIDTH) {
+        outputBuffer << std::string(MIN_HEAD_WIDTH - headLength, ' ');
+    }
+    else assert(false && "Head string exceeded MIN_HEAD_WIDTH");
+
+    std::string formulaStr = exprPrinter.toString(node->getFormula());
+    auto formulaLength = getUtf8StrLength(formulaStr);
+    outputBuffer << formulaStr;
+
+    size_t currentColumn = std::max(headLength, MIN_HEAD_WIDTH) + formulaLength;
+    size_t padding = MIN_FORMULA_PADDING;
+    if (currentColumn + MIN_FORMULA_PADDING < MIN_SOURCE_COLUMN) {
+        padding = (MIN_SOURCE_COLUMN - currentColumn);
+    }
+
+    outputBuffer << std::string(padding, ' ') << "{ ";
+
+    if (auto tptpNode = std::dynamic_pointer_cast<TptpProofNode>(node)) {
+        std::string path = tptpNode->getSourceFile();
+        std::replace(path.begin(), path.end(), '\\', '/');
+        outputBuffer << tptpNode->getName() << " | " << path;
+    }
+    else if (auto stepNode = std::dynamic_pointer_cast<ProofStep>(node)) {
+        outputBuffer << stepNode->getRule();
+        const auto& parents = stepNode->getParents();
+        assert(!parents.empty());
+        outputBuffer << " [";
+        for (size_t i = 0; i < parents.size(); ++i) {
+            outputBuffer << nodeIds.at(parents[i].get());
+            if (i < parents.size() - 1) outputBuffer << ", ";
+        }
+        outputBuffer << "]";
+    }
+    else {
+        outputBuffer << "unknown";
+    }
+
+    outputBuffer << " }\n";
 }
 
 void ProofPrinter::nodeToTstp(const ProofNodePtr& node, std::string role) {
@@ -94,6 +148,7 @@ void ProofPrinter::nodeToTstp(const ProofNodePtr& node, std::string role) {
     else if (auto stepNode = std::dynamic_pointer_cast<ProofStep>(node)) {
         outputBuffer << "inference(" << stepNode->getRule() << ", [], [";
         const auto& parents = stepNode->getParents();
+        assert(!parents.empty());
         for (size_t i = 0; i < parents.size(); ++i) {
             outputBuffer << nodeIds.at(parents[i].get());
             if (i < parents.size() - 1) outputBuffer << ", ";
@@ -147,6 +202,8 @@ void ProofPrinter::nodeToHtml(const ProofNodePtr& node, std::string role) {
     outputBuffer << "  <div class='col-source'>";
 
     if (auto tptpNode = std::dynamic_pointer_cast<TptpProofNode>(node)) {
+        outputBuffer << "<strong>" << escapeHtml(tptpNode->getName()) << "</strong>";
+        outputBuffer << "&nbsp;&nbsp;|&nbsp;&nbsp;";
         std::string path = tptpNode->getSourceFile();
         std::replace(path.begin(), path.end(), '\\', '/');
         outputBuffer << "<span class='src-file'>" << escapeHtml(path) << "</span>";

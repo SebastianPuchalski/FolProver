@@ -14,6 +14,7 @@ namespace TptpTool {
 class ProofPrinter {
 public:
     enum class Format {
+        TEXT_UTF8,
         TSTP,
         HTML
     };
@@ -28,7 +29,6 @@ private:
     const ExpressionTransformer exprTransformer;
 
     std::unordered_map<const ProofNode*, std::string> nodeIds;
-    std::unordered_set<std::string> reservedIds;
     int idCounter;
 
     std::ostringstream outputBuffer;
@@ -37,6 +37,7 @@ private:
         std::unordered_set<const ProofNode*>& visited);
     void processNodeRecursively(const ProofNodePtr& node);
 
+    void nodeToTextUtf8(const ProofNodePtr& node, std::string role);
     void nodeToTstp(const ProofNodePtr& node, std::string role);
     void nodeToHtml(const ProofNodePtr& node, std::string role);
 

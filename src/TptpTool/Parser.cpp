@@ -1,20 +1,12 @@
 #include "Parser.hpp"
 
+#include <cassert>
 #include <sstream>
 #include <stdexcept>
 
 namespace TptpTool {
 
     static const Token EOF_TOKEN{ TokenType::END_OF_FILE, "", 0, 0 };
-
-    // Helper: Strip quotes from single-quoted names if present.
-    // Example: 'cat' -> cat, 'file.ax' -> file.ax. If not quoted, returns text as is.
-    static std::string stripQuotes(const std::string& text) {
-        if (text.length() >= 2 && text.front() == '\'' && text.back() == '\'') {
-            return text.substr(1, text.length() - 2);
-        }
-        return text;
-    }
 
     // --- Operator Precedence Table ---
     static int getBindingPower(TokenType type) {
@@ -62,7 +54,7 @@ namespace TptpTool {
         Loader::IncludeDirective directive;
 
         // 1. Parse filename
-        directive.filePath = stripQuotes(consume(TokenType::NAME, "Expected filename in include").text);
+        directive.filePath = normalizeSymbol(consume(TokenType::NAME, "Expected filename in include").text);
 
         // 2. Handle optional formula selection list: include('file', [name1, name2])
         if (match(TokenType::COMMA)) {
@@ -75,7 +67,7 @@ namespace TptpTool {
                         check(TokenType::KW_FOF) || check(TokenType::KW_CNF) ||
                         check(TokenType::KW_INCLUDE)) {
 
-                        directive.filter.push_back(stripQuotes(current().text));
+                        directive.filter.push_back(normalizeSymbol(current().text));
                         advance();
                     }
                     else {
@@ -107,7 +99,7 @@ namespace TptpTool {
             check(TokenType::KW_THF)) {
 
             // CHANGE: Strip quotes
-            name = stripQuotes(current().text);
+            name = normalizeSymbol(current().text);
             advance();
         }
         else {
@@ -124,7 +116,7 @@ namespace TptpTool {
             check(TokenType::KW_THF)) {
 
             // CHANGE: Strip quotes
-            role = stripQuotes(current().text);
+            role = normalizeSymbol(current().text);
             advance();
         }
         else {
@@ -371,7 +363,7 @@ namespace TptpTool {
                 type == TokenType::INTEGER ||
                 type == TokenType::REAL);
 
-            std::string symbol = stripQuotes(tokens_[pos_ - 1].text);
+            std::string symbol = normalizeSymbol(tokens_[pos_ - 1].text);
             std::vector<TermPtr> args;
 
             // Check for arguments, but strictly forbid them for numbers and distinct objects.
@@ -456,6 +448,31 @@ namespace TptpTool {
         Token t = current();
         std::string loc = "Line " + std::to_string(t.line) + ":" + std::to_string(t.column);
         throw std::runtime_error("Parse Error [" + loc + "]: " + msg);
+    }
+
+    // Handles TPTP quoting rules.
+    // 1. Unescapes single-quoted strings: 'a\'b' -> a'b
+    // 2. Returns Distinct Objects ("...") and plain words as is.
+    std::string Parser::normalizeSymbol(const std::string& text) const {
+        if (text.length() < 2 || text.front() != '\'') return text;
+        if (text.back() != '\'') {
+            error("Malformed quoted symbol: missing closing quote in '" + text + "'");
+        }
+
+        std::string result;
+        result.reserve(text.length() - 2);
+
+        for (size_t i = 1; i < text.length() - 1; ++i) {
+            if (text[i] == '\\') {
+                char next = text[i + 1];
+                if (next != '\'' && next != '\\') {
+                    error("Unknown escape sequence: \\" + std::string(1, next));
+                }
+                continue;
+            }
+            result += text[i];
+        }
+        return result;
     }
 
 } // namespace TptpTool
