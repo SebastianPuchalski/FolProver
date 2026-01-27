@@ -104,12 +104,15 @@
     <ClInclude Include="..\src\Expression.hpp" />
     <ClInclude Include="..\src\ExpressionBuilder.hpp" />
     <ClInclude Include="..\src\ExpressionPrinter.hpp" />
+    <ClInclude Include="..\src\ExpressionRewriter.hpp" />
     <ClInclude Include="..\src\ExpressionSerializer.hpp" />
     <ClInclude Include="..\src\ExpressionTransformer.hpp" />
+    <ClInclude Include="..\src\ExpressionUtils.hpp" />
     <ClInclude Include="..\src\FolSatSolver.hpp" />
     <ClInclude Include="..\src\Lpo.hpp" />
     <ClInclude Include="..\src\NaiveResolutionSolver.hpp" />
     <ClInclude Include="..\src\NaiveSuperpositionSolver.hpp" />
+    <ClInclude Include="..\src\NameRegistry.hpp" />
     <ClInclude Include="..\src\ProofNode.hpp" />
     <ClInclude Include="..\src\TptpTool\Lexer.hpp" />
     <ClInclude Include="..\src\TptpTool\Loader.hpp" />
@@ -122,14 +125,19 @@
   <ItemGroup>
     <ClCompile Include="..\src\Expression.cpp" />
     <ClCompile Include="..\src\ExpressionPrinter.cpp" />
+    <ClCompile Include="..\src\ExpressionRewriter.cpp" />
     <ClCompile Include="..\src\ExpressionSerializer.cpp" />
     <ClCompile Include="..\src\ExpressionTransformer.cpp" />
+    <ClCompile Include="..\src\ExpressionUtils.cpp" />
     <ClCompile Include="..\src\Lpo.cpp" />
     <ClCompile Include="..\src\NaiveResolutionSolver.cpp" />
     <ClCompile Include="..\src\NaiveSuperpositionSolver.cpp" />
+    <ClCompile Include="..\src\NameRegistry.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionPrinterTest.cpp" />
+    <ClCompile Include="..\src\Tests\ExpressionRewriterTest.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionSerializerTest.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionTransformerTest.cpp" />
+    <ClCompile Include="..\src\Tests\ExpressionUtilsTest.cpp" />
     <ClCompile Include="..\src\Tests\LoaderTest.cpp" />
     <ClCompile Include="..\src\Tests\LpoTest.cpp" />
     <ClCompile Include="..\src\Tests\NaiveResolutionSolverTest.cpp" />

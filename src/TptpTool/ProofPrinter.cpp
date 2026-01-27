@@ -1,4 +1,6 @@
 #include "ProofPrinter.hpp"
+
+#include "../ExpressionUtils.hpp"
 #include "TptpProofNode.hpp"
 
 #include <algorithm>
@@ -160,7 +162,7 @@ void ProofPrinter::nodeToTextUtf8(const ProofNodePtr& node, std::string role) {
 }
 
 void ProofPrinter::nodeToTstp(const ProofNodePtr& node, std::string role) {
-    const bool isCnf = exprTransformer.isCnf(node->getFormula());
+    const bool isCnf = ExpressionUtils::isCnf(node->getFormula());
 
     outputBuffer << (isCnf ? "cnf" : "fof") << "("
         << nodeIds.at(node.get()) << ", "

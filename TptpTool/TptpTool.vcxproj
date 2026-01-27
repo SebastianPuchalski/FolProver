@@ -20,12 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ExpressionPrinter.cpp" />
+    <ClCompile Include="..\src\ExpressionRewriter.cpp" />
     <ClCompile Include="..\src\ExpressionSerializer.cpp" />
     <ClCompile Include="..\src\ExpressionTransformer.cpp" />
     <ClCompile Include="..\src\Expression.cpp" />
+    <ClCompile Include="..\src\ExpressionUtils.cpp" />
     <ClCompile Include="..\src\Lpo.cpp" />
     <ClCompile Include="..\src\NaiveResolutionSolver.cpp" />
     <ClCompile Include="..\src\NaiveSuperpositionSolver.cpp" />
+    <ClCompile Include="..\src\NameRegistry.cpp" />
     <ClCompile Include="..\src\TptpTool\Lexer.cpp" />
     <ClCompile Include="..\src\TptpTool\Loader.cpp" />
     <ClCompile Include="..\src\TptpTool\main.cpp" />
@@ -35,6 +38,8 @@
     <ClCompile Include="..\src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\ExpressionRewriter.hpp" />
+    <ClInclude Include="..\src\ExpressionUtils.hpp" />
     <ClInclude Include="..\src\FolSatSolver.hpp" />
     <ClInclude Include="..\src\ExpressionBuilder.hpp" />
     <ClInclude Include="..\src\ExpressionPrinter.hpp" />
@@ -44,6 +49,7 @@
     <ClInclude Include="..\src\Lpo.hpp" />
     <ClInclude Include="..\src\NaiveResolutionSolver.hpp" />
     <ClInclude Include="..\src\NaiveSuperpositionSolver.hpp" />
+    <ClInclude Include="..\src\NameRegistry.hpp" />
     <ClInclude Include="..\src\ProofNode.hpp" />
     <ClInclude Include="..\src\TptpTool\Lexer.hpp" />
     <ClInclude Include="..\src\TptpTool\Loader.hpp" />

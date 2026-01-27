@@ -146,7 +146,7 @@ std::vector<ProofNodePtr> Solver::convertToCnf(const std::vector<ProofNodePtr>& 
     ExpressionTransformer et;
 
     for (const auto& node : nodes) {
-        et.reserveExpressionSymbols(node->getFormula());
+        et.getNameRegistry()->registerPredAndFuncNames(node->getFormula());
     }
 
     for (const auto& node : nodes) {

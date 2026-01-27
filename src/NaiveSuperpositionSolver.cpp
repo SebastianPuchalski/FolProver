@@ -1,11 +1,13 @@
 #include "NaiveSuperpositionSolver.hpp"
 
 #include "ExpressionBuilder.hpp"
+#include "ExpressionUtils.hpp"
 #include "Utils.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <functional>
 
 struct NaiveSuperpositionSolver::Clause {
     const ProofNodePtr input;
@@ -102,7 +104,7 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
             for (const auto& literal : inferredClause->literals) {
                 if (literal->exprType == Expression::Type::EQUALITY) {
                     auto equality = std::static_pointer_cast<EqualityFormula>(literal);
-                    if (transformer.areAlphaEquivalent(equality->left, equality->right)) {
+                    if (ExpressionUtils::areAlphaEquivalent(equality->left, equality->right)) {
                         isTautology = true;
                         break;
                     }
