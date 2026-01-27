@@ -421,7 +421,8 @@ size_t getExpressionSizeRec(const ExpressionPtr& expr,
 
 bool isVarFreeInExprRec(const ExpressionPtr& expr,
     const std::string& varSymbol) {
-    if (!expr) return false;
+    assert(expr && !varSymbol.empty());
+    if (!expr || varSymbol.empty()) return false;
 
     if (expr->exprType == Expression::Type::QUANTIFICATION) {
         auto quant = std::static_pointer_cast<QuantificationFormula>(expr);
@@ -430,8 +431,9 @@ bool isVarFreeInExprRec(const ExpressionPtr& expr,
         }
     }
     else if (expr->exprType == Expression::Type::VARIABLE) {
-        auto var = std::static_pointer_cast<VariableTerm>(expr);
-        return var->symbol == varSymbol;
+        auto variable = std::static_pointer_cast<VariableTerm>(expr);
+        assert(!variable->symbol.empty());
+        return variable->symbol == varSymbol;
     }
 
     size_t count = expr->getChildCount();

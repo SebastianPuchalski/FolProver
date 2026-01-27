@@ -43,13 +43,6 @@ private:
     bool handleDistinctObjects(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
     void standardizeVariables(ClausePtr& clause);
 
-    bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2,
-        Substitution& mgu) const;
-    bool performOccursCheck(const std::string& symbol, const ExpressionPtr& expr,
-        const Substitution& mgu) const;
-    ExpressionPtr substitute(const ExpressionPtr& expr,
-        const Substitution& substitution, bool inPlace = false) const;
-
     std::vector<bool> selectLiterals(
         const std::vector<FormulaPtr>& literals) const;
     std::vector<bool> areEligibleForResolution(
