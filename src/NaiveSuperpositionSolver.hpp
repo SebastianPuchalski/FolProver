@@ -20,7 +20,6 @@ public:
 private:
     struct Clause;
     using ClausePtr = std::shared_ptr<Clause>;
-    using Substitution = std::map<std::string, TermPtr>;
 
     ExpressionTransformer transformer;
     Lpo lpo;

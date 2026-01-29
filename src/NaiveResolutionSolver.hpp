@@ -26,13 +26,15 @@ private:
     double timeLimitSeconds = 0.0;
     int memoryLimitMegabytes = 0;
 
-    bool removeBoolLiterals(std::vector<FormulaPtr>& literals);
-    bool handleDistinctObjects(std::vector<FormulaPtr>& literals);
-    void standardizeVariables(ClausePtr& clause);
     void resolve(const ClausePtr& clause1, const ClausePtr& clause2,
-        std::vector<ClausePtr>& resolvents);
-    void factor(const ClausePtr& clause, std::vector<ClausePtr>& factors);
+        std::vector<ClausePtr>& resolvents) const;
+    void factor(const ClausePtr& clause, std::vector<ClausePtr>& factors) const;
     void addEqualityAxioms(std::deque<ClausePtr>& clauses);
+
+    bool removeBoolLiterals(std::vector<FormulaPtr>& literals) const;
+    bool handleDistinctObjects(std::vector<FormulaPtr>& literals) const;
+    void standardizeVariables(ClausePtr& clause);
+
     ProofNodePtr reconstructProof(const ClausePtr& clause,
         std::map<ClausePtr, ProofNodePtr>& cache) const;
 };

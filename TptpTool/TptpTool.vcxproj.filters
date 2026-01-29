@@ -66,7 +66,7 @@
     <ClCompile Include="..\src\NameRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ClauseUtils.cpp">
+    <ClCompile Include="..\src\Unification.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -131,7 +131,7 @@
     <ClInclude Include="..\src\NameRegistry.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ClauseUtils.hpp">
+    <ClInclude Include="..\src\Unification.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

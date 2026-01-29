@@ -1,7 +1,6 @@
 #include "NaiveSuperpositionSolver.hpp"
 
-#include "ClauseUtils.hpp"
-#include "ExpressionBuilder.hpp"
+#include "Unification.hpp"
 #include "ExpressionUtils.hpp"
 #include "Utils.hpp"
 
@@ -10,7 +9,7 @@
 #include <chrono>
 #include <functional>
 
-using namespace ClauseUtils;
+using namespace Unification;
 
 struct NaiveSuperpositionSolver::Clause {
     const ProofNodePtr input;
@@ -89,16 +88,16 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
             }
         }
 
-        ClausePtr unprocClause = unprocessedClauses.front();
+        ClausePtr givenClause = unprocessedClauses.front();
         unprocessedClauses.pop_front();
 
         std::vector<ClausePtr> inferredClauses;
-        applyFactoring(unprocClause, inferredClauses);
-        applyEqualityResolution(unprocClause, inferredClauses);
-        applyEqualityFactoring(unprocClause, inferredClauses);
+        applyFactoring(givenClause, inferredClauses);
+        applyEqualityResolution(givenClause, inferredClauses);
+        applyEqualityFactoring(givenClause, inferredClauses);
         for (const auto& procClause : processedClauses) {
-            applyBinaryResolution(procClause, unprocClause, inferredClauses);
-            applySuperposition(procClause, unprocClause, inferredClauses);
+            applyBinaryResolution(procClause, givenClause, inferredClauses);
+            applySuperposition(procClause, givenClause, inferredClauses);
         }
 
         for (auto& inferredClause : inferredClauses) {
@@ -131,7 +130,7 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
                 unprocessedClauses.push_back(finalClause);
             }
         }
-        processedClauses.push_back(unprocClause);
+        processedClauses.push_back(givenClause);
     }
     return FolSatSolver::Result::SATISFIABLE;
 }

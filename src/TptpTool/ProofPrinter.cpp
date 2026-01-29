@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <sstream>
 
 namespace TptpTool {
 
@@ -94,7 +93,7 @@ void ProofPrinter::processTextOutputBuffer() {
     };
 
     const size_t MIN_HEAD_PADDING = 2;
-    const size_t MIN_FORMULA_PADDING = 8;
+    const size_t MIN_FORMULA_PADDING = 4;
 
     size_t maxHeadLength = 0;
     size_t maxFormulaLength = 0;
@@ -109,7 +108,7 @@ void ProofPrinter::processTextOutputBuffer() {
     auto averageFormulaLength = sumFormulaLength / textOutputBuffer.size();
 
     size_t headWidth = maxHeadLength + MIN_HEAD_PADDING;
-    auto suggestedFormulaWidth = static_cast<size_t>(averageFormulaLength * 2.2);
+    auto suggestedFormulaWidth = static_cast<size_t>(averageFormulaLength * 2.5);
     size_t formulaMinWidth = std::min(suggestedFormulaWidth, maxFormulaLength);
 
     for (const auto& row : textOutputBuffer) {

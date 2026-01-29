@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../ExpressionPrinter.hpp"
-#include "../ExpressionTransformer.hpp"
 #include "../ProofNode.hpp"
 
 #include <sstream>
@@ -26,7 +25,6 @@ public:
 private:
     const Format format;
     const ExpressionPrinter exprPrinter;
-    const ExpressionTransformer exprTransformer;
 
     std::unordered_map<const ProofNode*, std::string> nodeIds;
     int idCounter;

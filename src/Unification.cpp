@@ -1,8 +1,8 @@
-#include "ClauseUtils.hpp"
+#include "Unification.hpp"
 
-namespace ClauseUtils {
+namespace Unification {
 
-bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution& mgu) {
+bool unify(const ExpressionPtr& expr1,const ExpressionPtr& expr2, Substitution& mgu) {
     assert(expr1 && expr2);
 
     if (expr1->isTerm() && expr2->isTerm()) {
@@ -80,7 +80,8 @@ bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution&
     return true;
 }
 
-ExpressionPtr substitute(const ExpressionPtr& expr, const Substitution& substitution, bool inPlace) {
+ExpressionPtr substitute(const ExpressionPtr& expr,
+    const Substitution& substitution, bool inPlace) {
     assert(expr);
     if (!expr) return nullptr;
     assert(expr->exprType != Expression::Type::QUANTIFICATION);
@@ -107,7 +108,8 @@ ExpressionPtr substitute(const ExpressionPtr& expr, const Substitution& substitu
     return expr;
 }
 
-bool performOccursCheck(const std::string& varSymbol, const ExpressionPtr& expr, const Substitution& mgu) {
+bool performOccursCheck(const std::string& varSymbol,
+    const ExpressionPtr& expr, const Substitution& mgu) {
     assert(expr && !varSymbol.empty());
     if (!expr || varSymbol.empty()) return false;
     assert(expr->exprType != Expression::Type::QUANTIFICATION);
@@ -130,4 +132,4 @@ bool performOccursCheck(const std::string& varSymbol, const ExpressionPtr& expr,
     return false;
 }
 
-} // namespace ClauseUtils
+} // namespace Unification

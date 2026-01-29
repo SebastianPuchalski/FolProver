@@ -1,6 +1,6 @@
 #include "NaiveResolutionSolver.hpp"
 
-#include "ClauseUtils.hpp"
+#include "Unification.hpp"
 #include "ExpressionBuilder.hpp"
 #include "Utils.hpp"
 
@@ -8,7 +8,7 @@
 #include <cassert>
 #include <chrono>
 
-using namespace ClauseUtils;
+using namespace Unification;
 
 struct NaiveResolutionSolver::Clause {
     const ProofNodePtr input;
@@ -107,87 +107,8 @@ ProofNodePtr NaiveResolutionSolver::getProof() const {
     return reconstructProof(proofRoot, cache);
 }
 
-bool NaiveResolutionSolver::removeBoolLiterals(std::vector<FormulaPtr>& literals) {
-    auto it = literals.begin();
-    while (it != literals.end()) {
-        const auto& literal = *it;
-        bool remove = false;
-        if (literal->exprType == Expression::Type::BOOLEAN) {
-            auto boolean = std::static_pointer_cast<BooleanFormula>(literal);
-            if (boolean->value) return true; // tautology
-            else remove = true;
-        }
-        else if (literal->exprType == Expression::Type::NEGATION) {
-            auto negation = std::static_pointer_cast<NegationFormula>(literal);
-            assert(negation->child);
-            if (negation->child->exprType == Expression::Type::BOOLEAN) {
-                auto boolean = std::static_pointer_cast<BooleanFormula>(negation->child);
-                if (boolean->value) remove = true;
-                else return true; // tautology
-            }
-        }
-        if (remove) it = literals.erase(it);
-        else ++it;
-    }
-    return false; // not tautology
-}
-
-bool NaiveResolutionSolver::handleDistinctObjects(std::vector<FormulaPtr>& literals) {
-    auto getDistinctSymbol = [](const TermPtr& term) -> std::string {
-        if (term->exprType != Expression::Type::FUNCTION) return "";
-        auto functionTerm = std::static_pointer_cast<FunctionTerm>(term);
-        if (functionTerm->distinct) {
-            return functionTerm->symbol;
-        }
-        return "";
-        };
-
-    auto it = literals.begin();
-    while (it != literals.end()) {
-        FormulaPtr literal = *it;
-
-        FormulaPtr atom;
-        bool isNegated;
-        if (literal->exprType == Expression::Type::NEGATION) {
-            atom = std::static_pointer_cast<NegationFormula>(literal)->child;
-            isNegated = true;
-        }
-        else {
-            atom = literal;
-            isNegated = false;
-        }
-
-        if (atom->exprType == Expression::Type::EQUALITY) {
-            auto equality = std::static_pointer_cast<EqualityFormula>(atom);
-            std::string leftSymbol = getDistinctSymbol(equality->left);
-            std::string rightSymbol = getDistinctSymbol(equality->right);
-
-            if (!leftSymbol.empty() && !rightSymbol.empty()) {
-                bool symbolsIdentical = (leftSymbol == rightSymbol);
-                if (symbolsIdentical != isNegated) {
-                    return true;
-                }
-                it = literals.erase(it);
-                continue;
-            }
-        }
-        ++it;
-    }
-    return false;
-}
-
-void NaiveResolutionSolver::standardizeVariables(ClausePtr& clause) {
-    if (clause->literals.empty()) return;
-    auto junction = std::make_shared<JunctionFormula>(
-        JunctionFormula::Operator::OR, clause->literals);
-    auto standardized = transformer.standardizeVariables(junction, true);
-    assert(standardized->exprType == Expression::Type::JUNCTION);
-    auto standardizedJunction = std::static_pointer_cast<JunctionFormula>(standardized);
-    clause->literals = standardizedJunction->operands;
-}
-
 void NaiveResolutionSolver::resolve(const ClausePtr& clause1, const ClausePtr& clause2,
-    std::vector<ClausePtr>& resolvents) {
+    std::vector<ClausePtr>& resolvents) const {
     for (size_t i1 = 0; i1 < clause1->literals.size(); ++i1) {
         auto literal1 = clause1->literals[i1];
         for (size_t i2 = 0; i2 < clause2->literals.size(); ++i2) {
@@ -238,7 +159,8 @@ void NaiveResolutionSolver::resolve(const ClausePtr& clause1, const ClausePtr& c
     }
 }
 
-void NaiveResolutionSolver::factor(const ClausePtr& clause, std::vector<ClausePtr>& factors) {
+void NaiveResolutionSolver::factor(const ClausePtr& clause,
+    std::vector<ClausePtr>& factors) const {
     for (size_t i1 = 0; i1 < clause->literals.size(); ++i1) {
         auto literal1 = clause->literals[i1];
         for (size_t i2 = i1 + 1; i2 < clause->literals.size(); ++i2) {
@@ -377,6 +299,85 @@ void NaiveResolutionSolver::addEqualityAxioms(std::deque<ClausePtr>& clauses) {
         literals.push_back(EB::Pred(name, argsY));
         addAxiom(std::move(literals));
     }
+}
+
+bool NaiveResolutionSolver::removeBoolLiterals(std::vector<FormulaPtr>& literals) const {
+    auto it = literals.begin();
+    while (it != literals.end()) {
+        const auto& literal = *it;
+        bool remove = false;
+        if (literal->exprType == Expression::Type::BOOLEAN) {
+            auto boolean = std::static_pointer_cast<BooleanFormula>(literal);
+            if (boolean->value) return true; // tautology
+            else remove = true;
+        }
+        else if (literal->exprType == Expression::Type::NEGATION) {
+            auto negation = std::static_pointer_cast<NegationFormula>(literal);
+            assert(negation->child);
+            if (negation->child->exprType == Expression::Type::BOOLEAN) {
+                auto boolean = std::static_pointer_cast<BooleanFormula>(negation->child);
+                if (boolean->value) remove = true;
+                else return true; // tautology
+            }
+        }
+        if (remove) it = literals.erase(it);
+        else ++it;
+    }
+    return false; // not tautology
+}
+
+bool NaiveResolutionSolver::handleDistinctObjects(std::vector<FormulaPtr>& literals) const {
+    auto getDistinctSymbol = [](const TermPtr& term) -> std::string {
+        if (term->exprType != Expression::Type::FUNCTION) return "";
+        auto functionTerm = std::static_pointer_cast<FunctionTerm>(term);
+        if (functionTerm->distinct) {
+            return functionTerm->symbol;
+        }
+        return "";
+        };
+
+    auto it = literals.begin();
+    while (it != literals.end()) {
+        FormulaPtr literal = *it;
+
+        FormulaPtr atom;
+        bool isNegated;
+        if (literal->exprType == Expression::Type::NEGATION) {
+            atom = std::static_pointer_cast<NegationFormula>(literal)->child;
+            isNegated = true;
+        }
+        else {
+            atom = literal;
+            isNegated = false;
+        }
+
+        if (atom->exprType == Expression::Type::EQUALITY) {
+            auto equality = std::static_pointer_cast<EqualityFormula>(atom);
+            std::string leftSymbol = getDistinctSymbol(equality->left);
+            std::string rightSymbol = getDistinctSymbol(equality->right);
+
+            if (!leftSymbol.empty() && !rightSymbol.empty()) {
+                bool symbolsIdentical = (leftSymbol == rightSymbol);
+                if (symbolsIdentical != isNegated) {
+                    return true;
+                }
+                it = literals.erase(it);
+                continue;
+            }
+        }
+        ++it;
+    }
+    return false;
+}
+
+void NaiveResolutionSolver::standardizeVariables(ClausePtr& clause) {
+    if (clause->literals.empty()) return;
+    auto junction = std::make_shared<JunctionFormula>(
+        JunctionFormula::Operator::OR, clause->literals);
+    auto standardized = transformer.standardizeVariables(junction, true);
+    assert(standardized->exprType == Expression::Type::JUNCTION);
+    auto standardizedJunction = std::static_pointer_cast<JunctionFormula>(standardized);
+    clause->literals = standardizedJunction->operands;
 }
 
 ProofNodePtr NaiveResolutionSolver::reconstructProof(const ClausePtr& clause,

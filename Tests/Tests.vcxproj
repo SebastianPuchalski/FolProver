@@ -100,7 +100,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\ClauseUtils.hpp" />
     <ClInclude Include="..\src\CnfSatSolver.hpp" />
     <ClInclude Include="..\src\Expression.hpp" />
     <ClInclude Include="..\src\ExpressionBuilder.hpp" />
@@ -121,10 +120,10 @@
     <ClInclude Include="..\src\TptpTool\ProofPrinter.hpp" />
     <ClInclude Include="..\src\TptpTool\Solver.hpp" />
     <ClInclude Include="..\src\TptpTool\TptpProofNode.hpp" />
+    <ClInclude Include="..\src\Unification.hpp" />
     <ClInclude Include="..\src\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\ClauseUtils.cpp" />
     <ClCompile Include="..\src\Expression.cpp" />
     <ClCompile Include="..\src\ExpressionPrinter.cpp" />
     <ClCompile Include="..\src\ExpressionRewriter.cpp" />
@@ -151,6 +150,7 @@
     <ClCompile Include="..\src\TptpTool\Parser.cpp" />
     <ClCompile Include="..\src\TptpTool\ProofPrinter.cpp" />
     <ClCompile Include="..\src\TptpTool\Solver.cpp" />
+    <ClCompile Include="..\src\Unification.cpp" />
     <ClCompile Include="..\src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
