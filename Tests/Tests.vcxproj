@@ -114,6 +114,7 @@
     <ClInclude Include="..\src\NaiveSuperpositionSolver.hpp" />
     <ClInclude Include="..\src\NameRegistry.hpp" />
     <ClInclude Include="..\src\ProofNode.hpp" />
+    <ClInclude Include="..\src\SuperpositionSolver.hpp" />
     <ClInclude Include="..\src\TptpTool\Lexer.hpp" />
     <ClInclude Include="..\src\TptpTool\Loader.hpp" />
     <ClInclude Include="..\src\TptpTool\Parser.hpp" />
@@ -134,6 +135,7 @@
     <ClCompile Include="..\src\NaiveResolutionSolver.cpp" />
     <ClCompile Include="..\src\NaiveSuperpositionSolver.cpp" />
     <ClCompile Include="..\src\NameRegistry.cpp" />
+    <ClCompile Include="..\src\SuperpositionSolver.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionPrinterTest.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionRewriterTest.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionSerializerTest.cpp" />
@@ -145,6 +147,7 @@
     <ClCompile Include="..\src\Tests\NaiveSuperpositionSolverTest.cpp" />
     <ClCompile Include="..\src\Tests\ProofPrinterTest.cpp" />
     <ClCompile Include="..\src\Tests\SolverTest.cpp" />
+    <ClCompile Include="..\src\Tests\SuperpositionSolverTest.cpp" />
     <ClCompile Include="..\src\TptpTool\Lexer.cpp" />
     <ClCompile Include="..\src\TptpTool\Loader.cpp" />
     <ClCompile Include="..\src\TptpTool\Parser.cpp" />
