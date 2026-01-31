@@ -1,13 +1,18 @@
 #include "SuperpositionSolver.hpp"
 
-#include "Unification.hpp"
 #include "ExpressionUtils.hpp"
+#include "Unification.hpp"
 #include "Utils.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cstdint>
 #include <functional>
+#include <queue>
+#include <string>
+#include <tuple>
+#include <unordered_set>
 
 using namespace Unification;
 
@@ -20,11 +25,127 @@ struct SuperpositionSolver::Clause {
 
     std::vector<FormulaPtr> literals;
 
+private:
+    std::vector<std::weak_ptr<Clause>> children;
+    bool redundant = false;
+
     Clause(ProofNodePtr input) :
         input(input), parent1(nullptr), parent2(nullptr) {}
     Clause(std::string rule, ClausePtr parent1, ClausePtr parent2 = nullptr) :
         rule(std::move(rule)), input(nullptr), parent1(parent1), parent2(parent2) {}
+
+public:
+    static ClausePtr create(ProofNodePtr input) {
+        return ClausePtr(new Clause(input));
+    }
+
+    static ClausePtr create(std::string rule, ClausePtr parent1, ClausePtr parent2 = nullptr) {
+        ClausePtr clause(new Clause(std::move(rule), parent1, parent2));
+        if (clause->parent1) clause->parent1->children.push_back(clause);
+        if (clause->parent2 && clause->parent2 != clause->parent1) {
+            clause->parent2->children.push_back(clause);
+        }
+        return clause;
+    }
+
+    bool isRedundant() const { return redundant; }
+
+    void markRedundant() {
+        if (redundant) return;
+        redundant = true;
+        auto it = children.begin();
+        while (it != children.end()) {
+            if (auto childPtr = it->lock()) {
+                childPtr->markRedundant();
+                ++it;
+            }
+            else {
+                it = children.erase(it);
+            }
+        }
+    }
 };
+
+class SuperpositionSolver::ClauseSelector {
+public:
+    using WeightEvaluator = std::function<float(const ClausePtr& clause, uint64_t id)>;
+    struct SelectionStrategy {
+        size_t quota;
+        WeightEvaluator evaluator;
+    };
+
+    explicit ClauseSelector(const std::vector<SelectionStrategy>& strategies);
+
+    bool isEmpty() const;
+    void addClause(const ClausePtr& clause);
+    ClausePtr selectClause();
+    bool removeClause(const ClausePtr& clause);
+
+private:
+    using QueueElement = std::tuple<float, uint64_t, ClausePtr>;
+    using PriorityQueue = std::priority_queue
+        <QueueElement, std::vector<QueueElement>, std::greater<QueueElement>>;
+
+    struct StrategyQueue {
+        PriorityQueue queue;
+        size_t quota;
+        WeightEvaluator evaluator;
+    };
+
+    std::vector<StrategyQueue> queues;
+    std::unordered_set<ClausePtr> clauses;
+
+    uint64_t clauseIdCounter = 0;
+    size_t currentQueueIndex = 0;
+    size_t quotaUsed = 0;
+};
+
+SuperpositionSolver::ClauseSelector::ClauseSelector(
+    const std::vector<SelectionStrategy>& strategies)
+{
+    assert(!strategies.empty() && "Must provide at least one selection strategy");
+    queues.reserve(strategies.size());
+    for (const auto& strategy : strategies) {
+        assert(strategy.quota > 0 && "Quota must be greater than 0");
+        queues.push_back({ PriorityQueue(), strategy.quota, strategy.evaluator });
+    }
+}
+
+bool SuperpositionSolver::ClauseSelector::isEmpty() const {
+    return clauses.empty();
+}
+
+void SuperpositionSolver::ClauseSelector::addClause(const ClausePtr& clause) {
+    if (!clauses.insert(clause).second) return;
+    uint64_t id = ++clauseIdCounter;
+    for (auto& queue : queues) {
+        float weight = queue.evaluator(clause, id);
+        queue.queue.emplace(weight, id, clause);
+    }
+}
+
+SuperpositionSolver::ClausePtr SuperpositionSolver::ClauseSelector::selectClause() {
+    if (clauses.empty()) return nullptr;
+    while (true) {
+        StrategyQueue& currentQueue = queues[currentQueueIndex];
+        if (currentQueue.queue.empty() || quotaUsed >= currentQueue.quota) {
+            currentQueueIndex = (currentQueueIndex + 1) % queues.size();
+            quotaUsed = 0;
+        }
+        else {
+            auto [weight, id, clause] = currentQueue.queue.top();
+            currentQueue.queue.pop();
+            if (clauses.erase(clause)) {
+                quotaUsed++;
+                return clause;
+            }
+        }
+    }
+}
+
+bool SuperpositionSolver::ClauseSelector::removeClause(const ClausePtr& clause) {
+    return clauses.erase(clause);
+}
 
 void SuperpositionSolver::setTimeLimit(int seconds) {
     timeLimitSeconds = static_cast<double>(seconds);
@@ -38,39 +159,20 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
     auto startTime = std::chrono::steady_clock::now();
     size_t iterationCounter = 0;
 
-    std::deque<ClausePtr> unprocessedClauses;
+    std::vector<ClauseSelector::SelectionStrategy> selectionStrategies = {
+        { 5, [](const ClausePtr& clause, uint64_t) { return (float)clause->literals.size(); } },
+        { 1, [](const ClausePtr&, uint64_t id) { return (float)id; } }
+    };
+
+    ClauseSelector unprocessedClauses(selectionStrategies);
     std::vector<ClausePtr> processedClauses;
     transformer = ExpressionTransformer();
     proofRoot = nullptr;
 
-    for(size_t i = 0; i < clauses.size(); ++i) {
-        const auto& clause = clauses[i]->getFormula();
-        assert(clause);
-        assert(clause->exprType == Expression::Type::JUNCTION);
-        auto junction = std::static_pointer_cast<JunctionFormula>(clause->clone());
-        ClausePtr inputClause = std::make_shared<Clause>(clauses[i]);
-        inputClause->literals = junction->operands;
+    auto unsatisfiable = preprocessInput(clauses, unprocessedClauses);
+    if (unsatisfiable) return FolSatSolver::Result::UNSATISFIABLE;
 
-        std::vector<FormulaPtr> workingLiterals = junction->operands;
-        bool changed = false;
-        bool isTautology = removeBoolLiterals(workingLiterals, &changed);
-        if (!isTautology) isTautology = handleDistinctObjects(workingLiterals, &changed);
-        if (!isTautology) {
-            ClausePtr finalClause = inputClause;
-            if (changed) {
-                finalClause = std::make_shared<Clause>("simplification", inputClause);
-                finalClause->literals = std::move(workingLiterals);
-            }
-            if (finalClause->literals.empty()) {
-                proofRoot = finalClause;
-                return FolSatSolver::Result::UNSATISFIABLE;
-            }
-            standardizeVariables(finalClause);
-            unprocessedClauses.push_back(finalClause);
-        }
-    }
-
-    while (!unprocessedClauses.empty()) {
+    while (!unprocessedClauses.isEmpty()) {
         if (++iterationCounter > 128) {
             iterationCounter = 0;
             if (timeLimitSeconds > 0.0) {
@@ -88,14 +190,15 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
             }
         }
 
-        ClausePtr givenClause = unprocessedClauses.front();
-        unprocessedClauses.pop_front();
+        ClausePtr givenClause = unprocessedClauses.selectClause();
+        if (!givenClause || givenClause->isRedundant()) continue;
 
         std::vector<ClausePtr> inferredClauses;
         applyFactoring(givenClause, inferredClauses);
         applyEqualityResolution(givenClause, inferredClauses);
         applyEqualityFactoring(givenClause, inferredClauses);
         for (const auto& procClause : processedClauses) {
+            if (procClause->isRedundant()) continue;
             applyBinaryResolution(procClause, givenClause, inferredClauses);
             applySuperposition(procClause, givenClause, inferredClauses);
         }
@@ -119,7 +222,7 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
             if (!isTautology) {
                 ClausePtr finalClause = inferredClause;
                 if (changed) {
-                    finalClause = std::make_shared<Clause>("simplification", inferredClause);
+                    finalClause = Clause::create("simplification", inferredClause);
                     finalClause->literals = std::move(workingLiterals);
                 }
                 if (finalClause->literals.empty()) {
@@ -127,7 +230,7 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
                     return FolSatSolver::Result::UNSATISFIABLE;
                 }
                 standardizeVariables(finalClause);
-                unprocessedClauses.push_back(finalClause);
+                unprocessedClauses.addClause(finalClause);
             }
         }
         processedClauses.push_back(givenClause);
@@ -139,6 +242,37 @@ ProofNodePtr SuperpositionSolver::getProof() const {
     if (!proofRoot) return nullptr;
     std::map<ClausePtr, ProofNodePtr> cache;
     return reconstructProof(proofRoot, cache);
+}
+
+bool SuperpositionSolver::preprocessInput(const std::vector<ProofNodePtr>& clauses,
+    ClauseSelector& unprocessedClauses) {
+    for (size_t i = 0; i < clauses.size(); ++i) {
+        const auto& clause = clauses[i]->getFormula();
+        assert(clause);
+        assert(clause->exprType == Expression::Type::JUNCTION);
+        auto junction = std::static_pointer_cast<JunctionFormula>(clause->clone());
+        ClausePtr inputClause = Clause::create(clauses[i]);
+        inputClause->literals = junction->operands;
+
+        std::vector<FormulaPtr> workingLiterals = junction->operands;
+        bool changed = false;
+        bool isTautology = removeBoolLiterals(workingLiterals, &changed);
+        if (!isTautology) isTautology = handleDistinctObjects(workingLiterals, &changed);
+        if (!isTautology) {
+            ClausePtr finalClause = inputClause;
+            if (changed) {
+                finalClause = Clause::create("simplification", inputClause);
+                finalClause->literals = std::move(workingLiterals);
+            }
+            if (finalClause->literals.empty()) {
+                proofRoot = finalClause;
+                return true;
+            }
+            standardizeVariables(finalClause);
+            unprocessedClauses.addClause(finalClause);
+        }
+    }
+    return false;
 }
 
 void SuperpositionSolver::applyBinaryResolution(
@@ -165,7 +299,7 @@ void SuperpositionSolver::applyBinaryResolution(
                 Substitution mgu;
                 if (unify(lLiteral, negation->child, mgu)) {
                     auto rule = "resolution";
-                    auto newClause = std::make_shared<Clause>(rule, lClause, rClause);
+                    auto newClause = Clause::create(rule, lClause, rClause);
                     for (size_t k = 0; k < lClause->literals.size(); ++k) {
                         if (k != i) {
                             auto newLiteral = substitute(lClause->literals[k], mgu);
@@ -214,7 +348,7 @@ void SuperpositionSolver::applyFactoring(
             Substitution mgu;
             if (unify(literal1, literal2, mgu)) {
                 auto rule = "factoring";
-                auto newClause = std::make_shared<Clause>(rule, clause);
+                auto newClause = Clause::create(rule, clause);
                 for (size_t k = 0; k < literalCount; ++k) {
                     if (k != i) {
                         auto newLiteral = substitute(clause->literals[k], mgu);
@@ -246,7 +380,7 @@ void SuperpositionSolver::applySuperposition(
             Substitution mgu;
             if (unify(patternTerm, expression, mgu)) {
                 auto rule = "superposition";
-                auto newClause = std::make_shared<Clause>(rule, fromClause, intoClause);
+                auto newClause = Clause::create(rule, fromClause, intoClause);
                 for (size_t i = 0; i < fromClause->literals.size(); ++i) {
                     if (i != fromLiteralIndex) {
                         auto literal = std::static_pointer_cast<Formula>(substitute(fromClause->literals[i], mgu));
@@ -363,7 +497,7 @@ void SuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,
             Substitution mgu;
             if (unify(equality->left, equality->right, mgu)) {
                 auto rule = "equality_resolution";
-                auto newClause = std::make_shared<Clause>(rule, clause);
+                auto newClause = Clause::create(rule, clause);
                 for (size_t j = 0; j < clause->literals.size(); ++j) {
                     if (j != i) {
                         newClause->literals.push_back(
@@ -401,7 +535,7 @@ void SuperpositionSolver::applyEqualityFactoring(const ClausePtr& clause,
                     Substitution mgu;
                     if (unify(s, u, mgu)) {
                         auto rule = "equality_factoring";
-                        auto newClause = std::make_shared<Clause>(rule, clause);
+                        auto newClause = Clause::create(rule, clause);
                         auto tSub = substitute(t, mgu);
                         auto vSub = substitute(v, mgu);
                         auto newEquality = std::make_shared<EqualityFormula>(

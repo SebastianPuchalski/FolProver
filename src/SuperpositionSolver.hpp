@@ -4,9 +4,7 @@
 #include "FolSatSolver.hpp"
 #include "Lpo.hpp"
 
-#include <deque>
 #include <map>
-#include <string>
 #include <vector>
 
 class SuperpositionSolver : public FolSatSolver {
@@ -20,6 +18,7 @@ public:
 private:
     struct Clause;
     using ClausePtr = std::shared_ptr<Clause>;
+    class ClauseSelector;
 
     ExpressionTransformer transformer;
     Lpo lpo;
@@ -27,6 +26,9 @@ private:
 
     double timeLimitSeconds = 0.0;
     int memoryLimitMegabytes = 0;
+
+    bool preprocessInput(const std::vector<ProofNodePtr>& clauses,
+        ClauseSelector& unprocessedClauses);
 
     void applyBinaryResolution(const ClausePtr& clause1, const ClausePtr& clause2,
         std::vector<ClausePtr>& resolvents) const;

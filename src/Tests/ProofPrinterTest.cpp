@@ -86,38 +86,42 @@ TEST_F(ProofPrinterTest, FileBasedConjecture) {
 // Test 4: Simple Inference Step (CNF)
 // Checks if 'inference(...)' source is printed correctly for generated steps.
 TEST_F(ProofPrinterTest, GeneratedInferenceCnf) {
+    auto parent = TptpProofNode::create(Pred("dummy"), ProofNode::Type::PREMISE, "ax1", "test.p", "axiom");
+
     // p(X) | ~q(X) -> This is a clause
     auto formula = Or(Pred("p", { Var("X") }), Not(Pred("q", { Var("X") })));
     auto node = ProofStep::create(
         formula,
         ProofNode::Type::INFERENCE,
         "resolution",
-        {} // No parents
+        { parent }
     );
 
     std::string output = normalize(printer.toString(node));
 
-    // ID should be 1 (first generated)
-    // Expect: cnf(1, plain, ..., inference(resolution, [], [])).
-    EXPECT_NE(output.find("cnf(1, plain"), std::string::npos);
-    EXPECT_NE(output.find("inference(resolution, [], []))."), std::string::npos);
+    // ID should be 2 (parent is 1)
+    // Expect: cnf(2, plain, ..., inference(resolution, [], [1])).
+    EXPECT_NE(output.find("cnf(2, plain"), std::string::npos);
+    EXPECT_NE(output.find("inference(resolution, [], [1]))."), std::string::npos);
 }
 
 // Test 5: Negated Conjecture
 // Checks if the specific role "negated_conjecture" is assigned correctly.
 TEST_F(ProofPrinterTest, GeneratedNegatedConjecture) {
+    auto parent = TptpProofNode::create(Pred("goal"), ProofNode::Type::CONJECTURE, "orig_conj", "test.p", "conjecture");
+
     auto formula = Not(Pred("goal")); // Literal ~goal
     auto node = ProofStep::create(
         formula,
         ProofNode::Type::NEGATED_CONJECTURE,
         "negate_conj",
-        {}
+        { parent }
     );
 
     std::string output = normalize(printer.toString(node));
 
-    // Expect: cnf(1, negated_conjecture, ...).
-    EXPECT_NE(output.find("cnf(1, negated_conjecture"), std::string::npos);
+    // Expect: cnf(2, negated_conjecture, ...).
+    EXPECT_NE(output.find("cnf(2, negated_conjecture"), std::string::npos);
 }
 
 // -----------------------------------------------------------------------------
