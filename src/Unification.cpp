@@ -2,7 +2,7 @@
 
 namespace Unification {
 
-bool unify(const ExpressionPtr& expr1,const ExpressionPtr& expr2, Substitution& mgu) {
+bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution& mgu) {
     assert(expr1 && expr2);
 
     if (expr1->isTerm() && expr2->isTerm()) {
@@ -76,6 +76,47 @@ bool unify(const ExpressionPtr& expr1,const ExpressionPtr& expr2, Substitution& 
         ExpressionPtr child1 = expr1->getChild(i);
         ExpressionPtr child2 = expr2->getChild(i);
         if (!unify(child1, child2, mgu)) return false;
+    }
+    return true;
+}
+
+bool match(const ExpressionPtr& candidate, const ExpressionPtr& target, Substitution& substitution) {
+    assert(candidate && target);
+    assert(candidate->isTerm() || std::static_pointer_cast<Formula>(candidate)->isAtom());
+    assert(target->isTerm() || std::static_pointer_cast<Formula>(target)->isAtom());
+
+    if (candidate->exprType == Expression::Type::VARIABLE) {
+        if (!target->isTerm()) return false;
+        auto variable = std::static_pointer_cast<VariableTerm>(candidate);
+        auto it = substitution.find(variable->symbol);
+        if (it != substitution.end()) {
+            return match(it->second, target, substitution);
+        }
+        substitution[variable->symbol] = std::static_pointer_cast<Term>(target);
+        return true;
+    }
+
+    if (candidate->exprType != target->exprType) return false;
+    if (candidate->getChildCount() != target->getChildCount()) return false;
+    if (candidate->exprType == Expression::Type::FUNCTION) {
+        auto function1 = std::static_pointer_cast<FunctionTerm>(candidate);
+        auto function2 = std::static_pointer_cast<FunctionTerm>(target);
+        if (function1->symbol != function2->symbol) return false;
+        if (function1->distinct != function2->distinct) return false;
+    }
+    else if (candidate->exprType == Expression::Type::PREDICATE) {
+        auto predicate1 = std::static_pointer_cast<PredicateFormula>(candidate);
+        auto predicate2 = std::static_pointer_cast<PredicateFormula>(target);
+        if (predicate1->symbol != predicate2->symbol) return false;
+    }
+    else if (candidate->exprType != Expression::Type::EQUALITY) {
+        assert(false);
+        return false;
+    }
+
+    auto childCount = candidate->getChildCount();
+    for (size_t i = 0; i < childCount; ++i) {
+        if (!match(candidate->getChild(i), target->getChild(i), substitution)) return false;
     }
     return true;
 }
