@@ -30,18 +30,22 @@ private:
     int memoryLimitMegabytes = 0;
 
     bool loadInitialClauses(const std::vector<ProofNodePtr>& clauses, ClauseSelector& unprocessedClauses);
-    ClausePtr simplifyForward(const ClausePtr& clause, ClauseIndex& index) const;
-    ClausePtr simplifyCheapForward(const ClausePtr& clause, ClauseIndex& index) const;
-    ClausePtr simplifyTrivialForward(const ClausePtr& clause, ClauseIndex& index) const;
-    ClausePtr simplifyNecessaryForward(const ClausePtr& clause, ClauseIndex& index) const;
-    Clauses simplifyBackward(ClauseIndex& index, const ClausePtr& givenClause) const;
-    Clauses generateInferences(const ClausePtr& givenClause, ClauseIndex& index) const;
+    ClausePtr simplifyForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
+    ClausePtr simplifyCheapForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
+    void simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause, Clauses& reducedClauses) const;
+    ClausePtr simplifyNecessary(const ClausePtr& clauseToSimplify) const;
+    void generateInferences(const ClausePtr& clause, const ClauseIndex& index, Clauses& inferredClauses) const;
 
     void applyBinaryResolution(const ClausePtr& clause1, const ClausePtr& clause2, Clauses& resolvents) const;
     void applyFactoring(const ClausePtr& clause, Clauses& factors) const;
-    void applySuperposition(const ClausePtr& clause1, const ClausePtr& clause2, Clauses& inferredClauses) const;
+    void applySuperposition(const ClausePtr& clause1, const ClausePtr& clause2, Clauses& paramodulants) const;
     void applyEqualityResolution(const ClausePtr& clause, Clauses& inferredClauses) const;
     void applyEqualityFactoring(const ClausePtr& clause, Clauses& inferredClauses) const;
+
+    ClausePtr applyTautologyDeletion(const ClausePtr& clause) const;             // (TD)
+    ClausePtr applyDeletionOfDuplicateLiterals(const ClausePtr& clause) const;   // (DD)
+    ClausePtr applyDeletionOfResolvedLiterals(const ClausePtr& clause) const;    // (DR)
+    ClausePtr applyDestructiveEqualityResolution(const ClausePtr& clause) const; // (DE)
 
     bool removeBoolLiterals(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
     bool handleDistinctObjects(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
