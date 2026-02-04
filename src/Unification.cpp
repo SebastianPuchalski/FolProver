@@ -4,6 +4,7 @@ namespace Unification {
 
 bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution& mgu) {
     assert(expr1 && expr2);
+    if (expr1 == expr2) return true;
 
     if (expr1->isTerm() && expr2->isTerm()) {
         if ((expr1->exprType == Expression::Type::FUNCTION) &&
@@ -24,19 +25,19 @@ bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution&
                     e = it->second;
                 }
                 return e;
-                };
+            };
             ExpressionPtr e1 = unwrap(expr1);
             ExpressionPtr e2 = unwrap(expr2);
-            if ((e1->exprType == Expression::Type::VARIABLE) &&
-                (e2->exprType == Expression::Type::VARIABLE)) {
+            if (e1->exprType == Expression::Type::VARIABLE &&
+                e2->exprType == Expression::Type::VARIABLE) {
                 auto variable1 = std::static_pointer_cast<VariableTerm>(e1);
                 auto variable2 = std::static_pointer_cast<VariableTerm>(e2);
                 if (variable1->symbol == variable2->symbol) return true;
                 mgu[variable1->symbol] = variable2;
                 return true;
             }
-            else if ((e1->exprType == Expression::Type::VARIABLE) ||
-                (e2->exprType == Expression::Type::VARIABLE)) {
+            else if (e1->exprType == Expression::Type::VARIABLE ||
+                     e2->exprType == Expression::Type::VARIABLE) {
                 VariableTermPtr variable;
                 TermPtr term;
                 if (e1->exprType == Expression::Type::VARIABLE) {
@@ -55,23 +56,24 @@ bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution&
         }
     }
     else {
-        assert(std::static_pointer_cast<Formula>(expr1)->isAtom());
-        assert(std::static_pointer_cast<Formula>(expr2)->isAtom());
+        assert(std::static_pointer_cast<Formula>(expr1)->isLiteral());
+        assert(std::static_pointer_cast<Formula>(expr2)->isLiteral());
         if (expr1->exprType != expr2->exprType) return false;
+        if (expr1->getChildCount() != expr2->getChildCount()) return false;
         if (expr1->exprType == Expression::Type::PREDICATE) {
             auto predicate1 = std::static_pointer_cast<PredicateFormula>(expr1);
             auto predicate2 = std::static_pointer_cast<PredicateFormula>(expr2);
             if (predicate1->arguments.size() != predicate2->arguments.size()) return false;
             if (predicate1->symbol != predicate2->symbol) return false;
         }
-        else if (expr1->exprType != Expression::Type::EQUALITY) {
+        else if (expr1->exprType != Expression::Type::EQUALITY &&
+                 expr1->exprType != Expression::Type::NEGATION) {
             assert(false);
             return false;
         }
     }
 
     size_t count = expr1->getChildCount();
-    assert(count == expr2->getChildCount());
     for (size_t i = 0; i < count; ++i) {
         ExpressionPtr child1 = expr1->getChild(i);
         ExpressionPtr child2 = expr2->getChild(i);
@@ -82,15 +84,15 @@ bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution&
 
 bool match(const ExpressionPtr& candidate, const ExpressionPtr& target, Substitution& substitution) {
     assert(candidate && target);
-    assert(candidate->isTerm() || std::static_pointer_cast<Formula>(candidate)->isAtom());
-    assert(target->isTerm() || std::static_pointer_cast<Formula>(target)->isAtom());
+    assert(candidate->isTerm() || std::static_pointer_cast<Formula>(candidate)->isLiteral());
+    assert(target->isTerm() || std::static_pointer_cast<Formula>(target)->isLiteral());
 
     if (candidate->exprType == Expression::Type::VARIABLE) {
         if (!target->isTerm()) return false;
         auto variable = std::static_pointer_cast<VariableTerm>(candidate);
         auto it = substitution.find(variable->symbol);
         if (it != substitution.end()) {
-            return match(it->second, target, substitution);
+            return areEqual(it->second, target);
         }
         substitution[variable->symbol] = std::static_pointer_cast<Term>(target);
         return true;
@@ -109,7 +111,8 @@ bool match(const ExpressionPtr& candidate, const ExpressionPtr& target, Substitu
         auto predicate2 = std::static_pointer_cast<PredicateFormula>(target);
         if (predicate1->symbol != predicate2->symbol) return false;
     }
-    else if (candidate->exprType != Expression::Type::EQUALITY) {
+    else if (candidate->exprType != Expression::Type::EQUALITY &&
+             candidate->exprType != Expression::Type::NEGATION) {
         assert(false);
         return false;
     }
@@ -171,6 +174,38 @@ bool performOccursCheck(const std::string& varSymbol,
         if (performOccursCheck(varSymbol, child, mgu)) return true;
     }
     return false;
+}
+
+bool areEqual(const ExpressionPtr& expr1, const ExpressionPtr& expr2) {
+    assert(expr1 && expr2);
+    assert(expr1->isTerm() || std::static_pointer_cast<Formula>(expr1)->isLiteral());
+    assert(expr2->isTerm() || std::static_pointer_cast<Formula>(expr2)->isLiteral());
+
+    if (expr1 == expr2) return true;
+    if (expr1->exprType != expr2->exprType) return false;
+    if (expr1->getChildCount() != expr2->getChildCount()) return false;
+
+    if (expr1->exprType == Expression::Type::VARIABLE) {
+        auto variable1 = std::static_pointer_cast<VariableTerm>(expr1);
+        auto variable2 = std::static_pointer_cast<VariableTerm>(expr2);
+        if (variable1->symbol != variable2->symbol) return false;
+    }
+    if (expr1->exprType == Expression::Type::FUNCTION) {
+        auto function1 = std::static_pointer_cast<FunctionTerm>(expr1);
+        auto function2 = std::static_pointer_cast<FunctionTerm>(expr2);
+        if (function1->symbol != function2->symbol) return false;
+        if (function1->distinct != function2->distinct) return false;
+    }
+    else if (expr1->exprType == Expression::Type::PREDICATE) {
+        auto predicate1 = std::static_pointer_cast<PredicateFormula>(expr1);
+        auto predicate2 = std::static_pointer_cast<PredicateFormula>(expr2);
+        if (predicate1->symbol != predicate2->symbol) return false;
+    }
+
+    for (size_t i = 0; i < expr1->getChildCount(); ++i) {
+        if (!areEqual(expr1->getChild(i), expr2->getChild(i))) return false;
+    }
+    return true;
 }
 
 } // namespace Unification

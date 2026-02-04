@@ -46,6 +46,9 @@ private:
     ClausePtr applyDeletionOfDuplicateLiterals(const ClausePtr& clause) const;   // (DD)
     ClausePtr applyDeletionOfResolvedLiterals(const ClausePtr& clause) const;    // (DR)
     ClausePtr applyDestructiveEqualityResolution(const ClausePtr& clause) const; // (DE)
+    ClausePtr applyDemodulation(const ClausePtr& clause, const ClausePtr& unitClause) const; // RN, RP
+    ClausePtr applyClauseSubsumption(const ClausePtr& subsumed, const ClausePtr& subsuming) const; // CS
+    ClausePtr applyEqualitySubsumption(const ClausePtr& subsumed, const ClausePtr& unitClause) const; // ES
 
     bool removeBoolLiterals(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
     bool handleDistinctObjects(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;

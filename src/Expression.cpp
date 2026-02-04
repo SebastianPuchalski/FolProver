@@ -68,6 +68,42 @@ ExpressionPtr VariableTerm::clone() const {
     return std::make_shared<VariableTerm>(symbol);
 }
 
+ExpressionPtr BooleanFormula::cloneShallow() const {
+    return std::make_shared<BooleanFormula>(*this);
+}
+
+ExpressionPtr NegationFormula::cloneShallow() const {
+    return std::make_shared<NegationFormula>(*this);
+}
+
+ExpressionPtr BinaryFormula::cloneShallow() const {
+    return std::make_shared<BinaryFormula>(*this);
+}
+
+ExpressionPtr JunctionFormula::cloneShallow() const {
+    return std::make_shared<JunctionFormula>(*this);
+}
+
+ExpressionPtr QuantificationFormula::cloneShallow() const {
+    return std::make_shared<QuantificationFormula>(*this);
+}
+
+ExpressionPtr PredicateFormula::cloneShallow() const {
+    return std::make_shared<PredicateFormula>(*this);
+}
+
+ExpressionPtr EqualityFormula::cloneShallow() const {
+    return std::make_shared<EqualityFormula>(*this);
+}
+
+ExpressionPtr FunctionTerm::cloneShallow() const {
+    return std::make_shared<FunctionTerm>(*this);
+}
+
+ExpressionPtr VariableTerm::cloneShallow() const {
+    return std::make_shared<VariableTerm>(*this);
+}
+
 size_t BooleanFormula::getChildCount() const { return 0; }
 size_t NegationFormula::getChildCount() const { return 1; }
 size_t BinaryFormula::getChildCount() const { return 2; }

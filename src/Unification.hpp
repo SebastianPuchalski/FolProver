@@ -16,5 +16,6 @@ ExpressionPtr substitute(const ExpressionPtr& expr,
 	const Substitution& substitution, bool inPlace = false);
 bool performOccursCheck(const std::string& varSymbol,
 	const ExpressionPtr& expr, const Substitution& substitution);
+bool areEqual(const ExpressionPtr& expr1, const ExpressionPtr& expr2);
 
 } // namespace Unification

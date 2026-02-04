@@ -52,6 +52,7 @@ struct Expression {
     virtual bool isFormula() const = 0;
 
     virtual std::shared_ptr<Expression> clone() const = 0;
+    virtual std::shared_ptr<Expression> cloneShallow() const = 0;
     
     virtual size_t getChildCount() const = 0;
     virtual ExpressionPtr getChild(size_t index) const = 0;
@@ -91,6 +92,7 @@ struct BooleanFormula : public Formula {
     bool isLiteral() const override { return true; }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -109,6 +111,7 @@ struct NegationFormula : public Formula {
     bool isLiteral() const override { return child && child->isAtom(); }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -131,6 +134,7 @@ struct BinaryFormula : public Formula {
     bool isLiteral() const override { return false; }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -152,6 +156,7 @@ struct JunctionFormula : public Formula {
     bool isLiteral() const override { return false; }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -174,6 +179,7 @@ struct QuantificationFormula : public Formula {
     bool isLiteral() const override { return false; }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -193,6 +199,7 @@ struct PredicateFormula : public Formula {
     bool isLiteral() const override { return true; }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -212,6 +219,7 @@ struct EqualityFormula : public Formula {
     bool isLiteral() const override { return true; }
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -244,6 +252,7 @@ struct FunctionTerm : public Term {
     virtual ~FunctionTerm() = default;
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;
@@ -259,6 +268,7 @@ struct VariableTerm : public Term {
     virtual ~VariableTerm() = default;
 
     ExpressionPtr clone() const override;
+    ExpressionPtr cloneShallow() const override;
 
     virtual size_t getChildCount() const override;
     virtual ExpressionPtr getChild(size_t index) const override;

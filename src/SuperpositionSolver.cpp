@@ -155,9 +155,19 @@ public:
 
     void addClause(const ClausePtr& clause) {
         clauses.push_back(clause);
+        if (clause->literals.size() == 1) unitClauses.push_back(clause);
     }
 
     bool removeClause(const ClausePtr& clause) {
+        if (clause->literals.size() == 1) {
+            for (auto& c : unitClauses) {
+                if (c == clause) {
+                    c = unitClauses.back();
+                    unitClauses.pop_back();
+                    break;
+                }
+            }
+        }
         for (auto& c : clauses) {
             if (c == clause) {
                 c = clauses.back();
@@ -170,6 +180,10 @@ public:
 
     const Clauses& getClauses() const {
         return clauses;
+    }
+
+    const Clauses& getUnitClauses() const {
+        return unitClauses;
     }
 
     // --- 1. Generowanie Wnioskow (INFERENCE) ---
@@ -224,6 +238,7 @@ public:
 
 private:
     Clauses clauses;
+    Clauses unitClauses;
 };
 
 void SuperpositionSolver::setTimeLimit(int seconds) {
@@ -373,6 +388,21 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyForward(
             changed = true;
         }
 
+        for (const auto& unitClause : index.getUnitClauses()) {
+            auto afterDemodulation = applyDemodulation(current, unitClause);
+            if (afterDemodulation != current) {
+                current = afterDemodulation;
+                changed = true;
+            }
+        }
+
+        for (const auto& procClause : index.getClauses()) {
+            if (!applyClauseSubsumption(current, procClause)) return nullptr;
+        }
+
+        for (const auto& unitClause : index.getUnitClauses()) {
+            if (!applyEqualitySubsumption(current, unitClause)) return nullptr;
+        }
     } while (changed);
 
     return current;
@@ -386,6 +416,29 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyCheapForward(
 
 void SuperpositionSolver::simplifyBackward(
     ClauseIndex& indexToSimplify, const ClausePtr& clause, Clauses& reducedClauses) const {
+    for (const auto& procClause : indexToSimplify.getClauses()) {
+        if (!applyClauseSubsumption(procClause, clause)) {
+            indexToSimplify.removeClause(procClause);
+        }
+    }
+
+    if (clause->literals.size() == 1) {
+        for (const auto& procClause : indexToSimplify.getClauses()) {
+            if (!applyEqualitySubsumption(procClause, clause)) {
+                indexToSimplify.removeClause(procClause);
+            }
+        }
+    }
+
+    if (clause->literals.size() == 1) {
+        for (auto& procClause : indexToSimplify.getClauses()) {
+            auto afterDemodulation = applyDemodulation(procClause, clause);
+            if (afterDemodulation != procClause) {
+                reducedClauses.push_back(afterDemodulation);
+                indexToSimplify.removeClause(procClause);
+            }
+        }
+    }
 }
 
 SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyNecessary(
@@ -759,7 +812,6 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDeletionOfDuplicateLite
     }
 
     if (uniqueLiterals.size() == clause->literals.size()) return clause;
-
     auto newClause = Clause::create("deletion_of_duplicate_literals", clause);
     newClause->literals = std::move(uniqueLiterals);
     return newClause;
@@ -785,7 +837,6 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDeletionOfResolvedLiter
     }
 
     if (literals.size() == clause->literals.size()) return clause;
-
     auto newClause = Clause::create("deletion_of_resolved_literals", clause);
     newClause->literals = std::move(literals);
     return newClause;
@@ -819,6 +870,180 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDestructiveEqualityReso
         }
     }
     return clause;
+}
+
+SuperpositionSolver::ClausePtr SuperpositionSolver::applyDemodulation(
+    const ClausePtr& clause, const ClausePtr& unitClause) const {
+    if (!clause) return nullptr;
+    assert(unitClause && unitClause->literals.size() == 1);
+
+    if (!unitClause || unitClause->literals.size() != 1) return clause;
+    auto unitLiteral = unitClause->literals.front();
+    if (unitLiteral->exprType != Expression::Type::EQUALITY) return clause;
+    auto equality = std::static_pointer_cast<EqualityFormula>(unitLiteral);
+    TermPtr pattern, replacement;
+    auto comparisonResult = lpo.compare(equality->left, equality->right);
+    if (comparisonResult == Lpo::Result::GREATER) {
+        pattern = equality->left;
+        replacement = equality->right;
+    }
+    else if (comparisonResult == Lpo::Result::LESS) {
+        pattern = equality->right;
+        replacement = equality->left;
+    }
+    else return clause;
+
+    std::function<ExpressionPtr(ExpressionPtr, bool)> rewrite =
+        [&](ExpressionPtr expression, bool blockRoot) -> ExpressionPtr {
+        if (!blockRoot && expression->isTerm()) {
+            Substitution substitution;
+            if (Unification::match(pattern, expression, substitution)) {
+                return Unification::substitute(replacement, substitution);
+            }
+        }
+        ExpressionPtr newExpression = nullptr;
+        size_t count = expression->getChildCount();
+        for (size_t i = 0; i < count; ++i) {
+            auto child = expression->getChild(i);
+            auto newChild = rewrite(child, false);
+            if (newChild != child) {
+                if (!newExpression) {
+                    newExpression = expression->cloneShallow();
+                }
+                newExpression->setChild(i, newChild);
+            }
+        }
+        return newExpression ? newExpression : expression;
+    };
+
+    auto selectionMask = selectLiterals(clause->literals);
+    auto eligibleMask = areEligibleForParamodulation(clause->literals, selectionMask);
+
+    std::vector<FormulaPtr> newLiterals;
+    for (size_t i = 0; i < clause->literals.size(); ++i) {
+        const auto& literal = clause->literals[i];
+        ExpressionPtr newLiteralExpr = nullptr;
+        if (eligibleMask[i] && literal->exprType == Expression::Type::EQUALITY) {
+            auto equality = std::static_pointer_cast<EqualityFormula>(literal);
+            auto cmp = lpo.compare(equality->left, equality->right);
+            bool blockLeft = (cmp != Lpo::Result::LESS);
+            bool blockRight = (cmp != Lpo::Result::GREATER);
+            auto newLeft = rewrite(equality->left, blockLeft);
+            auto newRight = rewrite(equality->right, blockRight);
+            if (newLeft != equality->left || newRight != equality->right) {
+                newLiteralExpr = std::make_shared<EqualityFormula>(
+                    std::static_pointer_cast<Term>(newLeft),
+                    std::static_pointer_cast<Term>(newRight));
+            }
+            else newLiteralExpr = literal;
+        }
+        else if (eligibleMask[i] && literal->exprType == Expression::Type::PREDICATE) {
+            newLiteralExpr = rewrite(literal, true);
+        }
+        else newLiteralExpr = rewrite(literal, false);
+        auto newLiteral = std::static_pointer_cast<Formula>(newLiteralExpr);
+        if (newLiteral != literal) {
+            if (newLiterals.empty()) newLiterals = clause->literals;
+            newLiterals[i] = newLiteral;
+        }
+    }
+
+    if (newLiterals.empty()) return clause;
+    auto newClause = Clause::create("demodulation", clause, unitClause);
+    newClause->literals = std::move(newLiterals);
+    return newClause;
+}
+
+SuperpositionSolver::ClausePtr SuperpositionSolver::applyClauseSubsumption(
+    const ClausePtr& subsumed, const ClausePtr& subsuming) const {
+    if (!subsumed) return nullptr;
+    assert(subsuming);
+    if (subsumed->literals.size() < subsuming->literals.size()) {
+        return subsumed;
+    }
+
+    std::function<bool(size_t, const Substitution&)> checkRecursively =
+        [&](size_t subsumingClauseIndex, const Substitution& currentSubstitution) -> bool {
+        if (subsumingClauseIndex == subsuming->literals.size()) return true;
+        auto patternLiteral = subsuming->literals[subsumingClauseIndex];
+        for (const auto& targetLiteral : subsumed->literals) {
+            Substitution nextSubstitution = currentSubstitution;
+            if (Unification::match(patternLiteral, targetLiteral, nextSubstitution)) {
+                if (checkRecursively(subsumingClauseIndex + 1, nextSubstitution)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    if (checkRecursively(0, Substitution{})) return nullptr;
+    return subsumed;
+}
+
+SuperpositionSolver::ClausePtr SuperpositionSolver::applyEqualitySubsumption(
+    const ClausePtr& subsumed, const ClausePtr& unitClause) const {
+    if (!subsumed) return nullptr;
+    assert(unitClause);
+
+    if (unitClause->literals.size() != 1) return subsumed;
+    auto unitLiteral = unitClause->literals.front();
+    if (unitLiteral->exprType != Expression::Type::EQUALITY) return subsumed;
+    auto unitEquality = std::static_pointer_cast<EqualityFormula>(unitLiteral);
+
+    std::function<bool(const ExpressionPtr&, const ExpressionPtr&)> checkRecursively =
+        [&](const ExpressionPtr& expr1, const ExpressionPtr& expr2) -> bool {
+        assert(expr1->isTerm() && expr2->isTerm());
+        if (expr1 == expr2) return true;
+
+        if (expr1->exprType == expr2->exprType &&
+            expr1->getChildCount() == expr2->getChildCount()) {
+            bool expressionMatch = true;
+            if (expr1->exprType == Expression::Type::FUNCTION) {
+                auto function1 = std::static_pointer_cast<FunctionTerm>(expr1);
+                auto function2 = std::static_pointer_cast<FunctionTerm>(expr2);
+                if (function1->symbol != function2->symbol ||
+                    function1->distinct != function2->distinct) {
+                    expressionMatch = false;
+                }
+            }
+            else if (expr1->exprType == Expression::Type::VARIABLE) {
+                auto variable1 = std::static_pointer_cast<VariableTerm>(expr1);
+                auto variable2 = std::static_pointer_cast<VariableTerm>(expr2);
+                if (variable1->symbol != variable2->symbol) expressionMatch = false;
+            }
+
+            if (expressionMatch) {
+                bool childrenMatch = true;
+                size_t childCount = expr1->getChildCount();
+                for (size_t i = 0; i < childCount; ++i) {
+                    if (!checkRecursively(expr1->getChild(i), expr2->getChild(i))) {
+                        childrenMatch = false;
+                        break;
+                    }
+                }
+                if (childrenMatch) return true;
+            }
+        }
+
+        if (Substitution substitution;
+            Unification::match(unitEquality->left, expr1, substitution) &&
+            Unification::match(unitEquality->right, expr2, substitution)) return true;
+        if (Substitution substitution;
+            Unification::match(unitEquality->right, expr1, substitution) &&
+            Unification::match(unitEquality->left, expr2, substitution)) return true;
+        return false;
+    };
+
+    for (const auto& literal : subsumed->literals) {
+        if (literal->exprType == Expression::Type::EQUALITY) {
+            auto equality = std::static_pointer_cast<EqualityFormula>(literal);
+            if (checkRecursively(equality->left, equality->right)) {
+                return nullptr;
+            }
+        }
+    }
+    return subsumed;
 }
 
 bool SuperpositionSolver::removeBoolLiterals(
