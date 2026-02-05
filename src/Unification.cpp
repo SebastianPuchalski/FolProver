@@ -82,14 +82,14 @@ bool unify(const ExpressionPtr& expr1, const ExpressionPtr& expr2, Substitution&
     return true;
 }
 
-bool match(const ExpressionPtr& candidate, const ExpressionPtr& target, Substitution& substitution) {
-    assert(candidate && target);
-    assert(candidate->isTerm() || std::static_pointer_cast<Formula>(candidate)->isLiteral());
+bool match(const ExpressionPtr& pattern, const ExpressionPtr& target, Substitution& substitution) {
+    assert(pattern && target);
+    assert(pattern->isTerm() || std::static_pointer_cast<Formula>(pattern)->isLiteral());
     assert(target->isTerm() || std::static_pointer_cast<Formula>(target)->isLiteral());
 
-    if (candidate->exprType == Expression::Type::VARIABLE) {
+    if (pattern->exprType == Expression::Type::VARIABLE) {
         if (!target->isTerm()) return false;
-        auto variable = std::static_pointer_cast<VariableTerm>(candidate);
+        auto variable = std::static_pointer_cast<VariableTerm>(pattern);
         auto it = substitution.find(variable->symbol);
         if (it != substitution.end()) {
             return areEqual(it->second, target);
@@ -98,28 +98,28 @@ bool match(const ExpressionPtr& candidate, const ExpressionPtr& target, Substitu
         return true;
     }
 
-    if (candidate->exprType != target->exprType) return false;
-    if (candidate->getChildCount() != target->getChildCount()) return false;
-    if (candidate->exprType == Expression::Type::FUNCTION) {
-        auto function1 = std::static_pointer_cast<FunctionTerm>(candidate);
+    if (pattern->exprType != target->exprType) return false;
+    if (pattern->getChildCount() != target->getChildCount()) return false;
+    if (pattern->exprType == Expression::Type::FUNCTION) {
+        auto function1 = std::static_pointer_cast<FunctionTerm>(pattern);
         auto function2 = std::static_pointer_cast<FunctionTerm>(target);
         if (function1->symbol != function2->symbol) return false;
         if (function1->distinct != function2->distinct) return false;
     }
-    else if (candidate->exprType == Expression::Type::PREDICATE) {
-        auto predicate1 = std::static_pointer_cast<PredicateFormula>(candidate);
+    else if (pattern->exprType == Expression::Type::PREDICATE) {
+        auto predicate1 = std::static_pointer_cast<PredicateFormula>(pattern);
         auto predicate2 = std::static_pointer_cast<PredicateFormula>(target);
         if (predicate1->symbol != predicate2->symbol) return false;
     }
-    else if (candidate->exprType != Expression::Type::EQUALITY &&
-             candidate->exprType != Expression::Type::NEGATION) {
+    else if (pattern->exprType != Expression::Type::EQUALITY &&
+             pattern->exprType != Expression::Type::NEGATION) {
         assert(false);
         return false;
     }
 
-    auto childCount = candidate->getChildCount();
+    auto childCount = pattern->getChildCount();
     for (size_t i = 0; i < childCount; ++i) {
-        if (!match(candidate->getChild(i), target->getChild(i), substitution)) return false;
+        if (!match(pattern->getChild(i), target->getChild(i), substitution)) return false;
     }
     return true;
 }

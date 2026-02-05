@@ -46,9 +46,12 @@ private:
     ClausePtr applyDeletionOfDuplicateLiterals(const ClausePtr& clause) const;   // (DD)
     ClausePtr applyDeletionOfResolvedLiterals(const ClausePtr& clause) const;    // (DR)
     ClausePtr applyDestructiveEqualityResolution(const ClausePtr& clause) const; // (DE)
+    ClausePtr applyPredicateUnitSimplification(const ClausePtr& clause, const ClausePtr& unitClause) const;
     ClausePtr applyDemodulation(const ClausePtr& clause, const ClausePtr& unitClause) const; // RN, RP
     ClausePtr applyClauseSubsumption(const ClausePtr& subsumed, const ClausePtr& subsuming) const; // CS
     ClausePtr applyEqualitySubsumption(const ClausePtr& subsumed, const ClausePtr& unitClause) const; // ES
+    ClausePtr applyPositiveSimplifyReflect(const ClausePtr& clause, const ClausePtr& unitClause) const; // PS
+    ClausePtr applyNegativeSimplifyReflect(const ClausePtr& clause, const ClausePtr& unitClause) const; // NS
 
     bool removeBoolLiterals(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
     bool handleDistinctObjects(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;

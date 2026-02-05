@@ -10,7 +10,7 @@ using Substitution = std::map<std::string, TermPtr>; // variable name -> term
 
 bool unify(const ExpressionPtr& expr1,
 	const ExpressionPtr& expr2, Substitution& mgu);
-bool match(const ExpressionPtr& candidate,
+bool match(const ExpressionPtr& pattern,
 	const ExpressionPtr& target, Substitution& substitution);
 ExpressionPtr substitute(const ExpressionPtr& expr,
 	const Substitution& substitution, bool inPlace = false);
