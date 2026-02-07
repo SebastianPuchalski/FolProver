@@ -29,6 +29,7 @@ private:
     double timeLimitSeconds = 0.0;
     int memoryLimitMegabytes = 0;
 
+    ClauseSelector createClauseSelector() const;
     bool loadInitialClauses(const std::vector<ProofNodePtr>& clauses, ClauseSelector& unprocessedClauses);
     ClausePtr simplifyForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
     ClausePtr simplifyCheapForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
@@ -47,9 +48,9 @@ private:
     ClausePtr applyDeletionOfResolvedLiterals(const ClausePtr& clause) const;    // (DR)
     ClausePtr applyDestructiveEqualityResolution(const ClausePtr& clause) const; // (DE)
     ClausePtr applyPredicateUnitSimplification(const ClausePtr& clause, const ClausePtr& unitClause) const;
-    ClausePtr applyDemodulation(const ClausePtr& clause, const ClausePtr& unitClause) const; // RN, RP
-    ClausePtr applyClauseSubsumption(const ClausePtr& subsumed, const ClausePtr& subsuming) const; // CS
-    ClausePtr applyEqualitySubsumption(const ClausePtr& subsumed, const ClausePtr& unitClause) const; // ES
+    ClausePtr applyDemodulation(const ClausePtr& clause, const ClausePtr& unitClause) const;            // RN, RP
+    ClausePtr applyClauseSubsumption(const ClausePtr& subsumed, const ClausePtr& subsuming) const;      // CS
+    ClausePtr applyEqualitySubsumption(const ClausePtr& subsumed, const ClausePtr& unitClause) const;   // ES
     ClausePtr applyPositiveSimplifyReflect(const ClausePtr& clause, const ClausePtr& unitClause) const; // PS
     ClausePtr applyNegativeSimplifyReflect(const ClausePtr& clause, const ClausePtr& unitClause) const; // NS
 

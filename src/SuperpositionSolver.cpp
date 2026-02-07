@@ -272,12 +272,7 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
         return FolSatSolver::Result::UNKNOWN;
     };
 
-    std::vector<ClauseSelector::SelectionStrategy> selectionStrategies = {
-        { 4, [](const ClausePtr& clause, uint64_t) { return (float)clause->literals.size(); } },
-        { 1, [](const ClausePtr&, uint64_t id) { return (float)id; } }
-    };
-
-    ClauseSelector unprocessedClauses(selectionStrategies);
+    ClauseSelector unprocessedClauses = createClauseSelector();
     ClauseIndex processedClauses;
     transformer = ExpressionTransformer();
     proofRoot = nullptr;
@@ -324,6 +319,133 @@ ProofNodePtr SuperpositionSolver::getProof() const {
     if (!proofRoot) return nullptr;
     std::map<ClausePtr, ProofNodePtr> cache;
     return reconstructProof(proofRoot, cache);
+}
+
+SuperpositionSolver::ClauseSelector SuperpositionSolver::createClauseSelector() const {
+    auto fifoWeightEvaluator = [](const ClausePtr&, uint64_t id) -> float {
+        return static_cast<float>(id);
+    };
+
+    auto clauseWeightEvaluator = [](const ClausePtr& clause, uint64_t) -> float {
+        constexpr float predicateWeight = 2.0f;
+        constexpr float functionWeight = 2.0f;
+        constexpr float variableWeight = 1.0f;
+        constexpr float posLiteralCoef = 1.0f;
+
+        std::function<float(const ExpressionPtr&)> getTermWeight =
+            [&](const ExpressionPtr& expr) -> float {
+            if (expr->exprType == Expression::Type::VARIABLE) return variableWeight;
+            assert(expr->exprType == Expression::Type::FUNCTION);
+            float weight = functionWeight;
+            size_t childCount = expr->getChildCount();
+            for (size_t i = 0; i < childCount; ++i) {
+                weight += getTermWeight(expr->getChild(i));
+            }
+            return weight;
+        };
+
+        float totalWeight = 0.0f;
+        for (const auto& literal : clause->literals) {
+            bool isPositive;
+            ExpressionPtr atom;
+            if (literal->exprType == Expression::Type::NEGATION) {
+                isPositive = false;
+                atom = std::static_pointer_cast<NegationFormula>(literal)->child;
+            }
+            else {
+                isPositive = true;
+                atom = literal;
+            }
+            float literalWeight = predicateWeight;
+            size_t childCount = atom->getChildCount();
+            for (size_t i = 0; i < childCount; ++i) {
+                literalWeight += getTermWeight(atom->getChild(i));
+            }
+            if (isPositive) literalWeight *= posLiteralCoef;
+            totalWeight += literalWeight;
+        }
+        return totalWeight;
+    };
+
+    auto refinedWeightEvaluator = [this](const ClausePtr& clause, uint64_t) -> float {
+        constexpr float predicateWeight = 2.0f;
+        constexpr float functionWeight = 2.0f;
+        constexpr float variableWeight = 1.0f;
+        constexpr float maxTermCoef = 1.5f;
+        constexpr float maxLiteralCoef = 1.5f;
+
+        std::function<float(const ExpressionPtr&)> getBaseTermWeight =
+            [&](const ExpressionPtr& expr) -> float {
+            if (expr->exprType == Expression::Type::VARIABLE) return variableWeight;
+            assert(expr->exprType == Expression::Type::FUNCTION);
+            float weight = functionWeight;
+            size_t childCount = expr->getChildCount();
+            for (size_t i = 0; i < childCount; ++i) {
+                weight += getBaseTermWeight(expr->getChild(i));
+            }
+            return weight;
+        };
+
+        const auto& literals = clause->literals;
+        size_t literalCount = literals.size();
+
+        std::vector<bool> isLiteralMaximal(literalCount, true);
+        for (size_t i = 0; i < literalCount; ++i) {
+            for (size_t j = 0; j < literalCount; ++j) {
+                if (i != j && isLiteralMaximal[j]) {
+                    if (lpo.isGreater(literals[j], literals[i])) {
+                        isLiteralMaximal[i] = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        float totalClauseWeight = 0.0f;
+        for (size_t i = 0; i < literalCount; ++i) {
+            auto literal = literals[i];
+            ExpressionPtr atom;
+            if (literal->exprType == Expression::Type::NEGATION) {
+                atom = std::static_pointer_cast<NegationFormula>(literal)->child;
+            }
+            else atom = literal;
+
+            float currentLiteralWeight = predicateWeight;
+            size_t argumentCount = atom->getChildCount();
+
+            if (!isLiteralMaximal[i]) {
+                for (size_t j = 0; j < argumentCount; ++j) {
+                    currentLiteralWeight += getBaseTermWeight(atom->getChild(j));
+                }
+            }
+            else {
+                std::vector<bool> isArgumentMaximal(argumentCount, true);
+                for (size_t j = 0; j < argumentCount; ++j) {
+                    for (size_t k = 0; k < argumentCount; ++k) {
+                        if (j != k && isArgumentMaximal[k]) {
+                            if (lpo.isGreater(atom->getChild(k), atom->getChild(j))) {
+                                isArgumentMaximal[j] = false;
+                                break;
+                            }
+                        }
+                    }
+                    auto argumentWeight = getBaseTermWeight(atom->getChild(j));
+                    if (isArgumentMaximal[j]) argumentWeight *= maxTermCoef;
+                    currentLiteralWeight += argumentWeight;
+                }
+                currentLiteralWeight *= maxLiteralCoef;
+            }
+            totalClauseWeight += currentLiteralWeight;
+        }
+        return totalClauseWeight;
+    };
+
+    std::vector<ClauseSelector::SelectionStrategy> selectionStrategies = {
+        { 3, refinedWeightEvaluator },
+        { 1, clauseWeightEvaluator },
+        { 1, fifoWeightEvaluator }
+    };
+    return ClauseSelector(selectionStrategies);
 }
 
 bool SuperpositionSolver::loadInitialClauses(const std::vector<ProofNodePtr>& clauses,
@@ -441,67 +563,58 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyCheapForward(
 
 void SuperpositionSolver::simplifyBackward(
     ClauseIndex& indexToSimplify, const ClausePtr& clause, Clauses& reducedClauses) const {
-    auto deleteAndReplace = [&](const ClausePtr& oldClause,
-        const ClausePtr& newClause = nullptr) {
+
+    auto deleteAndReplace = [&](const ClausePtr& oldClause, const ClausePtr& newClause = nullptr) {
         assert(oldClause);
+        if (oldClause == newClause) return;
         oldClause->markChildrenRedundant(newClause);
         indexToSimplify.removeClause(oldClause);
         if (newClause) reducedClauses.push_back(newClause);
     };
 
+    if (clause->literals.size() == 1) {
+        auto procClauses = indexToSimplify.getClauses();
+        for (auto& procClause : procClauses) {
+            auto result = applyPredicateUnitSimplification(procClause, clause);
+            deleteAndReplace(procClause, result);
+        }
+    }
+
     auto procClauses = indexToSimplify.getClauses();
     for (const auto& procClause : procClauses) {
-        if (!applyClauseSubsumption(procClause, clause)) {
-            deleteAndReplace(procClause);
-        }
+        auto result = applyClauseSubsumption(procClause, clause);
+        deleteAndReplace(procClause, result);
     }
 
     if (clause->literals.size() == 1) {
         auto procClauses = indexToSimplify.getClauses();
         for (const auto& procClause : procClauses) {
-            if (!applyEqualitySubsumption(procClause, clause)) {
-                deleteAndReplace(procClause);
-            }
+            auto result = applyEqualitySubsumption(procClause, clause);
+            deleteAndReplace(procClause, result);
         }
     }
 
     if (clause->literals.size() == 1) {
         auto procClauses = indexToSimplify.getClauses();
         for (auto& procClause : procClauses) {
-            auto afterPUS = applyPredicateUnitSimplification(procClause, clause);
-            if (afterPUS != procClause) {
-                deleteAndReplace(procClause, afterPUS);
-            }
+            auto result = applyDemodulation(procClause, clause);
+            deleteAndReplace(procClause, result);
         }
     }
 
     if (clause->literals.size() == 1) {
         auto procClauses = indexToSimplify.getClauses();
         for (auto& procClause : procClauses) {
-            auto afterDemodulation = applyDemodulation(procClause, clause);
-            if (afterDemodulation != procClause) {
-                deleteAndReplace(procClause, afterDemodulation);
-            }
+            auto result = applyPositiveSimplifyReflect(procClause, clause);
+            deleteAndReplace(procClause, result);
         }
     }
 
     if (clause->literals.size() == 1) {
         auto procClauses = indexToSimplify.getClauses();
         for (auto& procClause : procClauses) {
-            auto afterPS = applyPositiveSimplifyReflect(procClause, clause);
-            if (afterPS != procClause) {
-                deleteAndReplace(procClause, afterPS);
-            }
-        }
-    }
-
-    if (clause->literals.size() == 1) {
-        auto procClauses = indexToSimplify.getClauses();
-        for (auto& procClause : procClauses) {
-            auto afterNS = applyNegativeSimplifyReflect(procClause, clause);
-            if (afterNS != procClause) {
-                deleteAndReplace(procClause, afterNS);
-            }
+            auto result = applyNegativeSimplifyReflect(procClause, clause);
+            deleteAndReplace(procClause, result);
         }
     }
 }
@@ -1348,7 +1461,7 @@ std::vector<bool> SuperpositionSolver::areEligibleForResolution(
         for (size_t i = 0; i < literals.size(); ++i) {
             if (scopeMask[i]) {
                 for (size_t j = 0; j < literals.size(); ++j) {
-                    if (scopeMask[j] && i != j) {
+                    if (i != j && resultMask[j]) {
                         if (lpo.isGreater(literals[j], literals[i])) {
                             resultMask[i] = false;
                             break;
