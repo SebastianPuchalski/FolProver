@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\SuperpositionSolver.cpp" />
+    <ClCompile Include="..\src\SuperpositionSolverUtils.cpp" />
     <ClCompile Include="..\src\Unification.cpp" />
     <ClCompile Include="..\src\ExpressionPrinter.cpp" />
     <ClCompile Include="..\src\ExpressionRewriter.cpp" />
@@ -41,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\SuperpositionSolver.hpp" />
+    <ClInclude Include="..\src\SuperpositionSolverUtils.hpp" />
     <ClInclude Include="..\src\Unification.hpp" />
     <ClInclude Include="..\src\ExpressionRewriter.hpp" />
     <ClInclude Include="..\src\ExpressionUtils.hpp" />

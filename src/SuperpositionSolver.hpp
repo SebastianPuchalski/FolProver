@@ -3,12 +3,15 @@
 #include "ExpressionTransformer.hpp"
 #include "FolSatSolver.hpp"
 #include "Lpo.hpp"
+#include "SuperpositionSolverUtils.hpp"
 
 #include <map>
 #include <vector>
 
 class SuperpositionSolver : public FolSatSolver {
 public:
+    SuperpositionSolver();
+
     void setTimeLimit(int seconds) override;
     void setMemoryLimit(int megabytes) override;
 
@@ -16,14 +19,18 @@ public:
     ProofNodePtr getProof() const override;
 
 private:
-    struct Clause;
-    using ClausePtr = std::shared_ptr<Clause>;
-    using Clauses = std::vector<ClausePtr>;
-    class ClauseSelector;
-    class ClauseIndex;
+    using Literals = SuperpositionSolverUtils::Literals;
+    using LiteralSelector = SuperpositionSolverUtils::LiteralSelector;
+    using Clause = SuperpositionSolverUtils::Clause;
+    using ClausePtr = SuperpositionSolverUtils::ClausePtr;
+    using Clauses = SuperpositionSolverUtils::Clauses;
+    using ClauseSelector = SuperpositionSolverUtils::ClauseSelector;
+    using ClauseIndex = SuperpositionSolverUtils::ClauseIndex;
 
-    ExpressionTransformer transformer;
     Lpo lpo;
+    LiteralSelector literalSelector;
+    ExpressionTransformer transformer;
+
     ClausePtr proofRoot;
 
     double timeLimitSeconds = 0.0;
@@ -33,9 +40,14 @@ private:
     bool loadInitialClauses(const std::vector<ProofNodePtr>& clauses, ClauseSelector& unprocessedClauses);
     ClausePtr simplifyForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
     ClausePtr simplifyCheapForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
-    void simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause, Clauses& reducedClauses) const;
+    void simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause,
+        Clauses& reducedClauses, ClauseSelector& unprocessedClauses) const;
     ClausePtr simplifyNecessary(const ClausePtr& clauseToSimplify) const;
     void generateInferences(const ClausePtr& clause, const ClauseIndex& index, Clauses& inferredClauses) const;
+    void standardizeVariables(ClausePtr& clause);
+
+    bool removeBoolLiterals(Literals& literals, bool* changed = nullptr) const;
+    bool handleDistinctObjects(Literals& literals, bool* changed = nullptr) const;
 
     void applyBinaryResolution(const ClausePtr& clause1, const ClausePtr& clause2, Clauses& resolvents) const;
     void applyFactoring(const ClausePtr& clause, Clauses& factors) const;
@@ -53,20 +65,6 @@ private:
     ClausePtr applyEqualitySubsumption(const ClausePtr& subsumed, const ClausePtr& unitClause) const;   // ES
     ClausePtr applyPositiveSimplifyReflect(const ClausePtr& clause, const ClausePtr& unitClause) const; // PS
     ClausePtr applyNegativeSimplifyReflect(const ClausePtr& clause, const ClausePtr& unitClause) const; // NS
-
-    bool removeBoolLiterals(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
-    bool handleDistinctObjects(std::vector<FormulaPtr>& literals, bool* changed = nullptr) const;
-    void standardizeVariables(ClausePtr& clause);
-
-    std::vector<bool> selectLiterals(
-        const std::vector<FormulaPtr>& literals) const;
-    std::vector<bool> areEligibleForResolution(
-        const std::vector<FormulaPtr>& literals,
-        const std::vector<bool>& selectionMask) const;
-    std::vector<bool> areEligibleForParamodulation(
-        const std::vector<FormulaPtr>& literals,
-        const std::vector<bool>& selectionMask,
-        bool strictlyMaximal = false) const;
 
     ProofNodePtr reconstructProof(const ClausePtr& clause,
         std::map<ClausePtr, ProofNodePtr>& cache) const;

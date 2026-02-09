@@ -115,6 +115,7 @@
     <ClInclude Include="..\src\NameRegistry.hpp" />
     <ClInclude Include="..\src\ProofNode.hpp" />
     <ClInclude Include="..\src\SuperpositionSolver.hpp" />
+    <ClInclude Include="..\src\SuperpositionSolverUtils.hpp" />
     <ClInclude Include="..\src\TptpTool\Lexer.hpp" />
     <ClInclude Include="..\src\TptpTool\Loader.hpp" />
     <ClInclude Include="..\src\TptpTool\Parser.hpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="..\src\NaiveSuperpositionSolver.cpp" />
     <ClCompile Include="..\src\NameRegistry.cpp" />
     <ClCompile Include="..\src\SuperpositionSolver.cpp" />
+    <ClCompile Include="..\src\SuperpositionSolverUtils.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionPrinterTest.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionRewriterTest.cpp" />
     <ClCompile Include="..\src\Tests\ExpressionSerializerTest.cpp" />
