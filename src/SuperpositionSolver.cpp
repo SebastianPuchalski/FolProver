@@ -26,27 +26,7 @@ void SuperpositionSolver::setMemoryLimit(int megabytes) {
 }
 
 FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>& clauses) {
-    auto startTime = std::chrono::steady_clock::now();
-    size_t iterationCounter = 0;
-    auto checkLimits = [&]() -> FolSatSolver::Result {
-        if (++iterationCounter > 128) {
-            iterationCounter = 0;
-            if (timeLimitSeconds > 0.0) {
-                auto now = std::chrono::steady_clock::now();
-                std::chrono::duration<double> elapsed = now - startTime;
-                if (elapsed.count() > timeLimitSeconds) {
-                    return FolSatSolver::Result::TIME_OUT;
-                }
-            }
-            if (memoryLimitMegabytes > 0) {
-                auto memoryLimitBytes = memoryLimitMegabytes * 1024 * 1024;
-                if (getPeakMemoryUsageInBytes() > memoryLimitBytes) {
-                    return FolSatSolver::Result::MEMORY_OUT;
-                }
-            }
-        }
-        return FolSatSolver::Result::UNKNOWN;
-    };
+    auto resourceLimitState = initResourceLimitState();
 
     ClauseSelector unprocessedClauses = createClauseSelector();
     ClauseIndex processedClauses;
@@ -54,10 +34,11 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
     proofRoot = nullptr;
 
     auto contradiction = loadInitialClauses(clauses, unprocessedClauses);
-    if (contradiction) return FolSatSolver::Result::UNSATISFIABLE;
+    if (contradiction) return Result::UNSATISFIABLE;
 
     while (!unprocessedClauses.isEmpty()) {
-        if (auto result = checkLimits(); result != FolSatSolver::Result::UNKNOWN) return result;
+        auto checkResult = checkResourceLimits(resourceLimitState);
+        if (checkResult != Result::UNKNOWN) return checkResult;
 
         ClausePtr givenClause = unprocessedClauses.selectClause();
         if (!givenClause) continue;
@@ -66,7 +47,7 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
         if (!givenClause) continue;
         if (givenClause->literals.empty()) {
             proofRoot = givenClause;
-            return FolSatSolver::Result::UNSATISFIABLE;
+            return Result::UNSATISFIABLE;
         }
 
         Clauses derivedClauses;
@@ -75,26 +56,51 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
         processedClauses.addClause(givenClause);
 
         for (auto clause : derivedClauses) {
-            if (!clause) continue;
             clause = simplifyCheapForward(clause, processedClauses);
-            if (!clause) continue;
-            clause = simplifyNecessary(clause);
+            clause = applyDistinctObjectSimplification(clause);
             if (!clause) continue;
             if (clause->literals.empty()) {
                 proofRoot = clause;
-                return FolSatSolver::Result::UNSATISFIABLE;
+                return Result::UNSATISFIABLE;
             }
             standardizeVariables(clause);
             unprocessedClauses.addClause(clause);
         }
     }
-    return FolSatSolver::Result::SATISFIABLE;
+    return Result::SATISFIABLE;
 }
 
 ProofNodePtr SuperpositionSolver::getProof() const {
     if (!proofRoot) return nullptr;
     std::map<ClausePtr, ProofNodePtr> cache;
     return reconstructProof(proofRoot, cache);
+}
+
+std::pair<double, size_t> SuperpositionSolver::initResourceLimitState() const {
+    auto now = std::chrono::steady_clock::now();
+    std::chrono::duration<double> currentTime = now.time_since_epoch();
+    return { currentTime.count(), 0 };
+}
+
+FolSatSolver::Result SuperpositionSolver::checkResourceLimits(
+    std::pair<double, size_t>& state) const {
+    if (++state.second >= 128) {
+        state.second = 0;
+        if (timeLimitSeconds > 0.0) {
+            auto now = std::chrono::steady_clock::now();
+            std::chrono::duration<double> currentTime = now.time_since_epoch();
+            if ((currentTime.count() - state.first) > timeLimitSeconds) {
+                return Result::TIME_OUT;
+            }
+        }
+        if (memoryLimitMegabytes > 0) {
+            auto memoryLimitBytes = memoryLimitMegabytes * 1024 * 1024;
+            if (getPeakMemoryUsageInBytes() > memoryLimitBytes) {
+                return Result::MEMORY_OUT;
+            }
+        }
+    }
+    return Result::UNKNOWN;
 }
 
 SuperpositionSolver::ClauseSelector SuperpositionSolver::createClauseSelector() const {
@@ -109,29 +115,24 @@ SuperpositionSolver::ClauseSelector SuperpositionSolver::createClauseSelector() 
 bool SuperpositionSolver::loadInitialClauses(const std::vector<ProofNodePtr>& clauses,
     ClauseSelector& unprocessedClauses) {
     for (size_t i = 0; i < clauses.size(); ++i) {
-        const auto& clause = clauses[i]->getFormula();
-        assert(clause);
-        assert(clause->exprType == Expression::Type::JUNCTION);
-        auto junction = std::static_pointer_cast<JunctionFormula>(clause->clone());
-        ClausePtr inputClause = Clause::create(junction->operands, clauses[i]);
+        const auto& formula = clauses[i]->getFormula();
+        assert(formula);
+        assert(formula->exprType == Expression::Type::JUNCTION);
+        auto junction = std::static_pointer_cast<JunctionFormula>(formula->clone());
+        assert(junction->op == JunctionFormula::Operator::OR);
+        ClausePtr inputClause = Clause::create(std::move(junction->operands), clauses[i]);
 
-        Literals workingLiterals = junction->operands;
-        bool changed = false;
-        bool isTautology = removeBoolLiterals(workingLiterals, &changed);
-        if (isTautology) continue;
-        isTautology = handleDistinctObjects(workingLiterals, &changed);
-        if (isTautology) continue;
-        ClausePtr finalClause = inputClause;
-        if (changed) {
-            finalClause = Clause::create(std::move(workingLiterals),
-                "simplification", inputClause);
-        }
-        if (finalClause->literals.empty()) {
-            proofRoot = finalClause;
+        inputClause = applyBooleanSimplification(inputClause);
+        inputClause = applyDistinctObjectSimplification(inputClause);
+        if (!inputClause) continue;
+
+        if (inputClause->literals.empty()) {
+            proofRoot = inputClause;
             return true;
         }
-        standardizeVariables(finalClause);
-        unprocessedClauses.addClause(finalClause);
+
+        standardizeVariables(inputClause);
+        unprocessedClauses.addClause(inputClause);
     }
     return false;
 }
@@ -139,74 +140,63 @@ bool SuperpositionSolver::loadInitialClauses(const std::vector<ProofNodePtr>& cl
 SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyForward(
     const ClausePtr& clauseToSimplify, const ClauseIndex& index) const {
     // (RN), (RP), (NS), (PS), (CLC), (DR), (DD), (DE), (CS), (ES), (TD)
+    if (!clauseToSimplify) return nullptr;
 
     auto current = clauseToSimplify;
     bool changed;
 
+    auto update = [&](ClausePtr result) {
+        if (result != current) {
+            current = result;
+            changed = true;
+        }
+    };
+
     do {
         changed = false;
 
-        auto afterTD = applyTautologyDeletion(current);
-        if(afterTD == nullptr) return nullptr;
+        update(applyTautologyDeletion(current));
+        if (!current) return nullptr;
 
-        auto afterDE = applyDestructiveEqualityResolution(current);
-        if (afterDE != current) {
-            current = afterDE;
-            changed = true;
-        }
+        update(applyDestructiveEqualityResolution(current));
+        if (!current) return nullptr;
 
-        auto afterDR = applyDeletionOfResolvedLiterals(current);
-        if (afterDR != current) {
-            current = afterDR;
-            changed = true;
-        }
+        update(applyDeletionOfResolvedLiterals(current));
+        if (!current) return nullptr;
 
-        auto afterDD = applyDeletionOfDuplicateLiterals(current);
-        if (afterDD != current) {
-            current = afterDD;
-            changed = true;
+        update(applyDeletionOfDuplicateLiterals(current));
+        if (!current) return nullptr;
+
+        for (const auto& unitClause : index.getUnitClauses()) {
+            update(applyPredicateUnitSimplification(current, unitClause));
+            if (!current) return nullptr;
         }
 
         for (const auto& unitClause : index.getUnitClauses()) {
-            auto afterPUS = applyPredicateUnitSimplification(current, unitClause);
-            if (afterPUS != current) {
-                current = afterPUS;
-                changed = true;
-                if (!current) return nullptr;
-            }
+            update(applyDemodulation(current, unitClause));
+            if (!current) return nullptr;
         }
 
         for (const auto& unitClause : index.getUnitClauses()) {
-            auto afterDemodulation = applyDemodulation(current, unitClause);
-            if (afterDemodulation != current) {
-                current = afterDemodulation;
-                changed = true;
-            }
+            update(applyPositiveSimplifyReflect(current, unitClause));
+            if (!current) return nullptr;
         }
 
         for (const auto& unitClause : index.getUnitClauses()) {
-            auto afterPS = applyPositiveSimplifyReflect(current, unitClause);
-            if (afterPS != current) {
-                current = afterPS;
-                changed = true;
-            }
-        }
-
-        for (const auto& unitClause : index.getUnitClauses()) {
-            auto afterNS = applyNegativeSimplifyReflect(current, unitClause);
-            if (afterNS != current) {
-                current = afterNS;
-                changed = true;
-            }
+            update(applyNegativeSimplifyReflect(current, unitClause));
+            if (!current) return nullptr;
         }
 
         for (const auto& procClause : index.getClauses()) {
-            if (!applyClauseSubsumption(current, procClause)) return nullptr;
+            update(applyClauseSubsumption(current, procClause));
+            if (!current) return nullptr;
         }
 
         for (const auto& unitClause : index.getUnitClauses()) {
-            if (!applyEqualitySubsumption(current, unitClause)) return nullptr;
+            update(applyEqualitySubsumption(current, unitClause));
+            if (!current) return nullptr;
         }
+
     } while (changed);
 
     return current;
@@ -215,11 +205,13 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyForward(
 SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyCheapForward(
     const ClausePtr& clauseToSimplify, const ClauseIndex& index) const {
     // efficiently implemented subset of (RN), (RP), (NS), (PS), (CLC), (DR), (DD), (DE), (TD)
+    if (!clauseToSimplify) return nullptr;
     return applyTautologyDeletion(clauseToSimplify);
 }
 
 void SuperpositionSolver::simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause,
     Clauses& reducedClauses, ClauseSelector& unprocessedClauses) const {
+    assert(clause);
 
     auto deleteAndReplace = [&](const ClausePtr& oldClause, const ClausePtr& newClause = nullptr) {
         assert(oldClause);
@@ -278,20 +270,6 @@ void SuperpositionSolver::simplifyBackward(ClauseIndex& indexToSimplify, const C
     }
 }
 
-SuperpositionSolver::ClausePtr SuperpositionSolver::simplifyNecessary(
-    const ClausePtr& clauseToSimplify) const {
-    Literals workingLiterals = clauseToSimplify->literals;
-    bool changed = false;
-    auto isTautology = handleDistinctObjects(workingLiterals, &changed);
-    if (isTautology) return nullptr;
-    if (changed) {
-        auto finalClause = Clause::create(std::move(workingLiterals),
-            "simplification", clauseToSimplify);
-        return finalClause;
-    }
-    return clauseToSimplify;
-}
-
 void SuperpositionSolver::generateInferences(
     const ClausePtr& clause, const ClauseIndex& index, Clauses& inferredClauses) const {
     applyFactoring(clause, inferredClauses);
@@ -318,37 +296,41 @@ void SuperpositionSolver::standardizeVariables(ClausePtr& clause) {
     }
 }
 
-bool SuperpositionSolver::removeBoolLiterals(
-    Literals& literals, bool* changed) const {
-    auto it = literals.begin();
-    while (it != literals.end()) {
-        const auto& literal = *it;
-        bool remove = false;
+ClausePtr SuperpositionSolver::applyBooleanSimplification(const ClausePtr& clause) const {
+    if (!clause) return nullptr;
+
+    Literals newLiterals;
+    newLiterals.reserve(clause->literals.size());
+
+    for (const auto& literal : clause->literals) {
+        bool removeLiteral = false;
         if (literal->exprType == Expression::Type::BOOLEAN) {
             auto boolean = std::static_pointer_cast<BooleanFormula>(literal);
-            if (boolean->value) return true; // tautology
-            else remove = true;
+            if (boolean->value) return nullptr;
+            else removeLiteral = true;
         }
         else if (literal->exprType == Expression::Type::NEGATION) {
             auto negation = std::static_pointer_cast<NegationFormula>(literal);
             assert(negation->child);
             if (negation->child->exprType == Expression::Type::BOOLEAN) {
                 auto boolean = std::static_pointer_cast<BooleanFormula>(negation->child);
-                if (boolean->value) remove = true;
-                else return true; // tautology
+                if (boolean->value) removeLiteral = true;
+                else return nullptr;
             }
         }
-        if (remove) {
-            it = literals.erase(it);
-            if (changed) *changed = true;
-        }
-        else ++it;
+        if (!removeLiteral) newLiterals.push_back(literal);
     }
-    return false; // not tautology
+
+    if (newLiterals.size() == clause->literals.size()) return clause;
+    return Clause::create(std::move(newLiterals), "boolean_simplification", clause);
 }
 
-bool SuperpositionSolver::handleDistinctObjects(
-    Literals& literals, bool* changed) const {
+ClausePtr SuperpositionSolver::applyDistinctObjectSimplification(const ClausePtr& clause) const {
+    if (!clause) return nullptr;
+
+    Literals newLiterals;
+    newLiterals.reserve(clause->literals.size());
+
     auto getDistinctSymbol = [](const TermPtr& term) -> std::string {
         if (term->exprType != Expression::Type::FUNCTION) return "";
         auto functionTerm = std::static_pointer_cast<FunctionTerm>(term);
@@ -356,12 +338,9 @@ bool SuperpositionSolver::handleDistinctObjects(
             return functionTerm->symbol;
         }
         return "";
-        };
+    };
 
-    auto it = literals.begin();
-    while (it != literals.end()) {
-        FormulaPtr literal = *it;
-
+    for (const auto& literal : clause->literals) {
         FormulaPtr atom;
         bool isNegated;
         if (literal->exprType == Expression::Type::NEGATION) {
@@ -377,20 +356,19 @@ bool SuperpositionSolver::handleDistinctObjects(
             auto equality = std::static_pointer_cast<EqualityFormula>(atom);
             std::string leftSymbol = getDistinctSymbol(equality->left);
             std::string rightSymbol = getDistinctSymbol(equality->right);
-
             if (!leftSymbol.empty() && !rightSymbol.empty()) {
                 bool symbolsIdentical = (leftSymbol == rightSymbol);
                 if (symbolsIdentical != isNegated) {
-                    return true;
+                    return nullptr;
                 }
-                it = literals.erase(it);
-                if (changed) *changed = true;
                 continue;
             }
         }
-        ++it;
+        newLiterals.push_back(literal);
     }
-    return false;
+
+    if (newLiterals.size() == clause->literals.size()) return clause;
+    return Clause::create(std::move(newLiterals), "distinct_object_simplification", clause);
 }
 
 void SuperpositionSolver::applyBinaryResolution(
@@ -730,9 +708,7 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDeletionOfDuplicateLite
     }
 
     if (uniqueLiterals.size() == clause->literals.size()) return clause;
-    auto newClause = Clause::create(std::move(uniqueLiterals),
-        "deletion_of_duplicate_literals", clause);
-    return newClause;
+    return Clause::create(std::move(uniqueLiterals), "deletion_of_duplicate_literals", clause);
 }
 
 SuperpositionSolver::ClausePtr SuperpositionSolver::applyDeletionOfResolvedLiterals(
@@ -755,9 +731,7 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDeletionOfResolvedLiter
     }
 
     if (literals.size() == clause->literals.size()) return clause;
-    auto newClause = Clause::create(std::move(literals),
-        "deletion_of_resolved_literals", clause);
-    return newClause;
+    return Clause::create(std::move(literals), "deletion_of_resolved_literals", clause);
 }
 
 SuperpositionSolver::ClausePtr SuperpositionSolver::applyDestructiveEqualityResolution(
@@ -784,9 +758,8 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDestructiveEqualityReso
                 auto newLiteral = Unification::substitute(clause->literals[j], mgu);
                 newLiterals.push_back(std::static_pointer_cast<Formula>(newLiteral));
             }
-            auto newClause = Clause::create(std::move(newLiterals),
+            return Clause::create(std::move(newLiterals),
                 "destructive_equality_resolution", clause);
-            return newClause;
         }
     }
     return clause;
@@ -837,9 +810,8 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyPredicateUnitSimplifica
     }
 
     if (!changed) return clause;
-    auto newClause = Clause::create(std::move(newLiterals),
+    return Clause::create(std::move(newLiterals),
         "predicate_unit_simplification", clause, unitClause);
-    return newClause;
 }
 
 SuperpositionSolver::ClausePtr SuperpositionSolver::applyDemodulation(
@@ -918,9 +890,7 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyDemodulation(
     }
 
     if (newLiterals.empty()) return clause;
-    auto newClause = Clause::create(std::move(newLiterals),
-        "demodulation", clause, unitClause);
-    return newClause;
+    return Clause::create(std::move(newLiterals), "demodulation", clause, unitClause);
 }
 
 SuperpositionSolver::ClausePtr SuperpositionSolver::applyClauseSubsumption(
@@ -1058,9 +1028,8 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyPositiveSimplifyReflect
     }
 
     if (!changed) return clause;
-    auto newClause = Clause::create(std::move(newLiterals),
+    return Clause::create(std::move(newLiterals),
         "positive_simplify-reflect", clause, unitClause);
-    return newClause;
 }
 
 SuperpositionSolver::ClausePtr SuperpositionSolver::applyNegativeSimplifyReflect(
@@ -1098,9 +1067,8 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyNegativeSimplifyReflect
     }
 
     if (!changed) return clause;
-    auto newClause = Clause::create(std::move(newLiterals),
+    return Clause::create(std::move(newLiterals),
         "negative_simplify-reflect", clause, unitClause);
-    return newClause;
 }
 
 ProofNodePtr SuperpositionSolver::reconstructProof(const ClausePtr& clause,

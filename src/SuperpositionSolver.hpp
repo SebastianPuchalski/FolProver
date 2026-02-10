@@ -31,23 +31,24 @@ private:
     LiteralSelector literalSelector;
     ExpressionTransformer transformer;
 
-    ClausePtr proofRoot;
-
     double timeLimitSeconds = 0.0;
     int memoryLimitMegabytes = 0;
 
+    ClausePtr proofRoot;
+
+    std::pair<double, size_t> initResourceLimitState() const;
+    Result checkResourceLimits(std::pair<double, size_t>& state) const;
     ClauseSelector createClauseSelector() const;
     bool loadInitialClauses(const std::vector<ProofNodePtr>& clauses, ClauseSelector& unprocessedClauses);
     ClausePtr simplifyForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
     ClausePtr simplifyCheapForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
     void simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause,
         Clauses& reducedClauses, ClauseSelector& unprocessedClauses) const;
-    ClausePtr simplifyNecessary(const ClausePtr& clauseToSimplify) const;
     void generateInferences(const ClausePtr& clause, const ClauseIndex& index, Clauses& inferredClauses) const;
     void standardizeVariables(ClausePtr& clause);
 
-    bool removeBoolLiterals(Literals& literals, bool* changed = nullptr) const;
-    bool handleDistinctObjects(Literals& literals, bool* changed = nullptr) const;
+    ClausePtr applyBooleanSimplification(const ClausePtr& clause) const;
+    ClausePtr applyDistinctObjectSimplification(const ClausePtr& clause) const;
 
     void applyBinaryResolution(const ClausePtr& clause1, const ClausePtr& clause2, Clauses& resolvents) const;
     void applyFactoring(const ClausePtr& clause, Clauses& factors) const;

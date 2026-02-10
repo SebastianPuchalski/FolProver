@@ -168,56 +168,6 @@ public:
         return unitClauses;
     }
 
-    // --- 1. Generowanie Wnioskow (INFERENCE) ---
-    // Te metody wykorzystuja UNIFIKACJE (Unification).
-
-    // Znajduje klauzule, ktore posiadaja literal unifikowalny z podanym 'literal'.
-    // Uzywane w kroku Generating (Binary Resolution).
-    // Zazwyczaj szukamy literalu o przeciwnej polaryzacji.
-    Clauses getUnifiableClauses(const FormulaPtr& literal) {
-        return {}; // Placeholder
-    }
-
-    // Znajduje klauzule, ktore zawieraja podterm unifikowalny z podanym termem.
-    // Uzywane w kroku Generating (Superposition).
-    // 'term' to zazwyczaj jedna ze stron rownania L=R z nowej klauzuli.
-    Clauses getUnifiableWithTerm(const TermPtr& term) {
-        return {}; // Placeholder
-    }
-
-    // --- 2. Upraszczanie Nowej Klauzuli (FORWARD SIMPLIFICATION) ---
-    // Te metody wykorzystuja DOPASOWANIE (Matching).
-
-    // Znajduje w indeksie klauzule bedace rownosciami (Unit Equality L=R),
-    // gdzie L pasuje (matches) do jakiegokolwiek podtermu w 'term'.
-    // Uzywane do Demodulacji (przepisywania) nowej klauzuli wiedza zebrana wczesniej.
-    Clauses getRewritingRulesFor(const TermPtr& term) {
-        return {}; // Placeholder
-    }
-
-    // Znajduje w indeksie klauzule, ktora subsumuje (czyni zbedna) podana 'clause'.
-    // Jesli zwroci jakikolwiek wynik, 'clause' jest redundantna i mozna ja usunac.
-    // Subsumption: Clause A subsumes B if A sigma subset B.
-    Clauses getSubsumingClauses(const ClausePtr& clause) {
-        return {}; // Placeholder
-    }
-
-    // --- 3. Upraszczanie Starych Klauzul (BACKWARD SIMPLIFICATION) ---
-    // Te metody rowniez wykorzystuja DOPASOWANIE, ale w druga strone.
-
-    // Znajduje w indeksie stare klauzule, ktore zawieraja podterm,
-    // ktory moze zostac przepisany przez nowa regule (equationLHS = ...).
-    // Znalezione klauzule zostana usuniete z indeksu, uproszczone i dodane ponownie do Unprocessed.
-    Clauses getClausesRewritableBy(const TermPtr& equationLHS) {
-        return {}; // Placeholder
-    }
-
-    // Znajduje w indeksie stare klauzule, ktore sa subsumowane przez nowa 'clause'.
-    // Te stare klauzule staja sie redundantne i nalezy je usunac z indeksu.
-    Clauses getSubsumedClauses(const ClausePtr& clause) {
-        return {}; // Placeholder
-    }
-
 private:
     Clauses clauses;
     Clauses unitClauses;
