@@ -97,26 +97,59 @@ TEST_F(SolverTest, TPTP_Syn001_1_Syntactic) {
 }
 
 TEST_F(SolverTest, TPTP_Puz001_Minus_1_Agatha_CNF) {
+    solveAndCheck("Problems/PUZ/PUZ001-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz001_1_Agatha_FOF) {
+    solveAndCheck("Problems/PUZ/PUZ001+1.p", Solver::OutStatus::THEOREM, false, true, 10);
+}
+
+TEST_F(SolverTest, TPTP_Syn919_1_Smullyan) {
+    solveAndCheck("Problems/SYN/SYN919+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn009_Minus_1_Relevancy) {
+    solveAndCheck("Problems/SYN/SYN009-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn077_Minus_1_Pelletier54) {
 #ifndef NDEBUG
-    std::cout << "[ INFO     ] Skipping slow test in Debug mode (TPTP_Puz001_Minus_1_Agatha_CNF)." << std::endl;
+    std::cout << "[ INFO      ] Skipping slow test in Debug mode (TPTP_Syn077_Minus_1_Pelletier54)." << std::endl;
     return;
 #else
-    solveAndCheck("Problems/PUZ/PUZ001-1.p", Solver::OutStatus::UNSATISFIABLE);
+    solveAndCheck("Problems/SYN/SYN077-1.p", Solver::OutStatus::UNSATISFIABLE);
 #endif
+}
+
+TEST_F(SolverTest, TPTP_Syn094_1_005_Plaisted) {
+    solveAndCheck("Problems/SYN/SYN094-1.005.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz031_1_SchubertsSteamroller) {
+    solveAndCheck("Problems/PUZ/PUZ031-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp001_1_X_Squared_Is_Identity) {
+    solveAndCheck("Problems/GRP/GRP001-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp048_10_InverseSubstitution) {
+#ifndef NDEBUG
+    std::cout << "[ INFO      ] Skipping slow test in Debug mode (TPTP_Grp048_10_InverseSubstitution)." << std::endl;
+    return;
+#else
+    solveAndCheck("Problems/GRP/GRP048-10.p", Solver::OutStatus::UNSATISFIABLE);
+#endif
+    // [       OK ] SolverTest.TPTP_Grp048_10_InverseSubstitution (4422505 ms)
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp049_1_SingleAxiomGroup) {
+    solveAndCheck("Problems/GRP/GRP049-1.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
 // =========================================================================
 // GROUP 2: EQUALITY MICRO-BENCHMARKS (FAST)
 // =========================================================================
-
-TEST_F(SolverTest, TPTP_Puz001_1_Agatha_FOF) {
-#ifndef NDEBUG
-    std::cout << "[ INFO     ] Skipping slow test in Debug mode (TPTP_Puz001_1_Agatha_FOF)." << std::endl;
-    return;
-#else
-    solveAndCheck("Problems/PUZ/PUZ001+1.p", Solver::OutStatus::THEOREM, false, true, 10);
-#endif
-}
 
 // Test 1: Reflexivity (X = X).
 // Simple proof: ~(a = a) should be UNSAT immediately.
@@ -311,7 +344,28 @@ TEST_F(SolverTest, Logic_DoubleNegation) {
 }
 
 // =========================================================================
-// GROUP 5: ERROR HANDLING
+// GROUP 5: SELF-SUPERPOSITION
+// =========================================================================
+
+TEST_F(SolverTest, Superposition_Mandatory_SelfOverlap) {
+    // This test case STRICTLY requires self-superposition to find the proof.
+    // Axiom: f(f(X)) = a
+    // Goal: f(a) = a
+    // Without self-superposition, the solver cannot bridge the gap
+    // because the goal literal f(a) does not contain the redex f(f(X)).
+
+    std::string filename = createProblemFile("mandatory_self.p", R"(
+        cnf(ax1, axiom, f(f(X)) = a).
+        cnf(conj, negated_conjecture, f(a) != a).
+    )");
+
+    // Should return UNSATISFIABLE.
+    // If it returns SATISFIABLE, the self-superposition logic is broken or missing.
+    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false, 2);
+}
+
+// =========================================================================
+// GROUP 6: ERROR HANDLING
 // =========================================================================
 
 TEST_F(SolverTest, Error_FileNotFound) {

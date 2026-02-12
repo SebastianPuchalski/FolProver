@@ -279,6 +279,7 @@ void SuperpositionSolver::generateInferences(
         applyBinaryResolution(procClause, clause, inferredClauses);
         applySuperposition(procClause, clause, inferredClauses);
     }
+    applySuperposition(clause, clause, inferredClauses);
 }
 
 void SuperpositionSolver::standardizeVariables(ClausePtr& clause) {
@@ -456,7 +457,6 @@ void SuperpositionSolver::applyFactoring(
 void SuperpositionSolver::applySuperposition(
     const ClausePtr& clause1, const ClausePtr& clause2,
     Clauses& paramodulants) const {
-    if (clause1 == clause2) return;
 
     std::function<void(ExpressionPtr, std::vector<size_t>&,
         const ClausePtr&, const ClausePtr&, size_t, size_t,
@@ -566,8 +566,32 @@ void SuperpositionSolver::applySuperposition(
         }
     };
 
-    processClausePair(clause1, clause2);
-    processClausePair(clause2, clause1);
+    if (clause1 != clause2) {
+        processClausePair(clause1, clause2);
+        processClausePair(clause2, clause1);
+    }
+    else {
+        std::function<void(ExpressionPtr)> renameVariables = [&](const ExpressionPtr& expr) {
+            if (expr->exprType == Expression::Type::VARIABLE) {
+                auto variable = std::static_pointer_cast<VariableTerm>(expr);
+                variable->symbol += "_c";
+            }
+            auto childCount = expr->getChildCount();
+            for (size_t i = 0; i < childCount; ++i) {
+                renameVariables(expr->getChild(i));
+            }
+        };
+
+        Literals literalsRenamed;
+        literalsRenamed.reserve(clause1->literals.size());
+        for (const auto& literal : clause1->literals) {
+            auto literalClone = std::static_pointer_cast<Formula>(literal->clone());
+            renameVariables(literalClone);
+            literalsRenamed.push_back(literalClone);
+        }
+        auto clauseCopy = Clause::create(std::move(literalsRenamed), "renaming", clause1);
+        processClausePair(clause1, clauseCopy);
+    }
 }
 
 void SuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,
