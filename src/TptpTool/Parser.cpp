@@ -235,7 +235,7 @@ namespace TptpTool {
             consume(TokenType::RBRACKET, "Expected ']' after variables");
             consume(TokenType::COLON, "Expected ':' after quantifier list");
 
-            FormulaPtr body = parseLogicFormula(0);
+            FormulaPtr body = parseUnitaryFormula();
 
             for (auto it = vars.rbegin(); it != vars.rend(); ++it) {
                 auto varTerm = std::make_shared<VariableTerm>(*it);
