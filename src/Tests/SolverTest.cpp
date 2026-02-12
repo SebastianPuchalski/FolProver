@@ -89,19 +89,11 @@ protected:
 };
 
 // =========================================================================
-// GROUP 1: STANDARD TPTP BENCHMARKS
+// GROUP 0: STANDARD TPTP BENCHMARKS
 // =========================================================================
 
 TEST_F(SolverTest, TPTP_Syn001_1_Syntactic) {
     solveAndCheck("Problems/SYN/SYN001+1.p", Solver::OutStatus::THEOREM);
-}
-
-TEST_F(SolverTest, TPTP_Puz001_Minus_1_Agatha_CNF) {
-    solveAndCheck("Problems/PUZ/PUZ001-1.p", Solver::OutStatus::UNSATISFIABLE);
-}
-
-TEST_F(SolverTest, TPTP_Puz001_1_Agatha_FOF) {
-    solveAndCheck("Problems/PUZ/PUZ001+1.p", Solver::OutStatus::THEOREM, false, true, 10);
 }
 
 TEST_F(SolverTest, TPTP_Syn919_1_Smullyan) {
@@ -125,10 +117,6 @@ TEST_F(SolverTest, TPTP_Syn094_1_005_Plaisted) {
     solveAndCheck("Problems/SYN/SYN094-1.005.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
-TEST_F(SolverTest, TPTP_Puz031_1_SchubertsSteamroller) {
-    solveAndCheck("Problems/PUZ/PUZ031-1.p", Solver::OutStatus::UNSATISFIABLE);
-}
-
 TEST_F(SolverTest, TPTP_Grp001_1_X_Squared_Is_Identity) {
     solveAndCheck("Problems/GRP/GRP001-1.p", Solver::OutStatus::UNSATISFIABLE);
 }
@@ -145,6 +133,269 @@ TEST_F(SolverTest, DISABLED_TPTP_Grp048_10_InverseSubstitution) {
 
 TEST_F(SolverTest, DISABLED_TPTP_Grp049_1_SingleAxiomGroup) {
     solveAndCheck("Problems/GRP/GRP049-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+// =========================================================================
+// GROUP 1: PUZ TPTP BENCHMARKS
+// =========================================================================
+
+TEST_F(SolverTest, TPTP_Puz001_Minus_3) {
+    solveAndCheck("Problems/PUZ/PUZ001-3.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz002_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ002-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz003_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ003-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz004_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ004-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz005_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ005+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz005_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ005-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz001_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ001+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz001_Plus_2) {
+    solveAndCheck("Problems/PUZ/PUZ001+2.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz001_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ001-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz001_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ001-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz006_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ006-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz007_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ007-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz008_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ008-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz008_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ008-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz008_Minus_3) {
+#ifndef NDEBUG
+    std::cout << "[ INFO      ] Skipping slow test in Debug mode (TPTP_Puz008_Minus_3)." << std::endl;
+    return;
+#else
+    solveAndCheck("Problems/PUZ/PUZ008-3.p", Solver::OutStatus::UNSATISFIABLE);
+#endif
+}
+
+TEST_F(SolverTest, TPTP_Puz009_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ009-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz010_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ010-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz011_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ011-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz012_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ012-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz013_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ013-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz014_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ014-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz015_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ015-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz015_Minus_2_006) {
+#ifndef NDEBUG
+    std::cout << "[ INFO      ] Skipping slow test in Debug mode (TPTP_Puz015_Minus_2_006)." << std::endl;
+    return;
+#else
+    solveAndCheck("Problems/PUZ/PUZ015-2.006.p", Solver::OutStatus::UNSATISFIABLE);
+#endif
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz015_Minus_3) {
+    solveAndCheck("Problems/PUZ/PUZ015-3.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz015_Minus_10) {
+    solveAndCheck("Problems/PUZ/PUZ015-10.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz016_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ016-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz016_Minus_2_004) {
+    solveAndCheck("Problems/PUZ/PUZ016-2.004.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz016_Minus_2_005) {
+    solveAndCheck("Problems/PUZ/PUZ016-2.005.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz017_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ017-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz018_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ018-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz018_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ018-2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz019_Minus_1) {
+#ifndef NDEBUG
+    std::cout << "[ INFO      ] Skipping slow test in Debug mode (TPTP_Puz019_Minus_1)." << std::endl;
+    return;
+#else
+    solveAndCheck("Problems/PUZ/PUZ019-1.p", Solver::OutStatus::UNSATISFIABLE);
+#endif
+}
+
+TEST_F(SolverTest, TPTP_Puz020_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ020-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz021_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ021-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz022_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ022-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz023_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ023-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz024_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ024-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz025_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ025-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz026_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ026-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz027_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ027-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz028_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ028-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz028_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ028-2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz028_Minus_3) {
+    solveAndCheck("Problems/PUZ/PUZ028-3.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz028_Minus_4) {
+    solveAndCheck("Problems/PUZ/PUZ028-4.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz028_Minus_5) {
+    solveAndCheck("Problems/PUZ/PUZ028-5.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz028_Minus_6) {
+    solveAndCheck("Problems/PUZ/PUZ028-6.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz029_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ029-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz030_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ030-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz030_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ030-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz031_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ031+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz031_Plus_2) {
+    solveAndCheck("Problems/PUZ/PUZ031+2.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz031_Plus_3) {
+    solveAndCheck("Problems/PUZ/PUZ031+3.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz031_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ031-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz032_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ032-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz033_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ033-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz034_Minus_1_003) {
+    solveAndCheck("Problems/PUZ/PUZ034-1.003.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz034_Minus_1_004) {
+    solveAndCheck("Problems/PUZ/PUZ034-1.004.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz035_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ035-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz035_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ035-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz035_Minus_3) {
+    solveAndCheck("Problems/PUZ/PUZ035-3.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz035_Minus_5) {
+    solveAndCheck("Problems/PUZ/PUZ035-5.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
 // =========================================================================
@@ -362,6 +613,31 @@ TEST_F(SolverTest, Superposition_Mandatory_SelfOverlap) {
     // Should return UNSATISFIABLE.
     // If it returns SATISFIABLE, the self-superposition logic is broken or missing.
     solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false, 2);
+}
+
+TEST_F(SolverTest, DISABLED_Superposition_Intermediate_ImplicitIdentity) {
+    // AXIOMS:
+    // 1. Associativity: (x * y) * z = x * (y * z)
+    // 2. Left Cancellation/Inverse property: x * (inv(x) * y) = y
+    //
+    // NOTE: We do NOT define 'e'. The solver implies it.
+    //
+    // GOAL:
+    // Prove that x * inv(x) is a constant (i.e., a * inv(a) == b * inv(b)).
+    // This requires deriving that x * inv(x) behaves like a right identity.
+
+    std::string filename = createProblemFile("implicit_id.p", R"(
+        cnf(assoc, axiom, multiply(multiply(X,Y),Z) = multiply(X,multiply(Y,Z))).
+        cnf(l_cancel, axiom, multiply(X, multiply(inverse(X), Y)) = Y).
+
+        cnf(prove_id_constant, negated_conjecture,
+            multiply(a, inverse(a)) != multiply(b, inverse(b))).
+    )");
+
+    // Should solve in < 2-4 seconds.
+    // If this hangs, your solver fails to synthesize constants (lemmas)
+    // from variable-only axioms.
+    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false);
 }
 
 // =========================================================================
