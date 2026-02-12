@@ -378,7 +378,7 @@ void SuperpositionSolver::applyBinaryResolution(
     if (clause1 == clause2) return;
 
     auto resolve = [&](const ClausePtr& lClause, const ClausePtr& rClause) {
-        auto lEligibleMask = lClause->getEligibleForParamodulationMask(literalSelector, true);
+        auto lEligibleMask = lClause->getEligibleForParamodulationMask(literalSelector, false);
         auto rEligibleMask = rClause->getEligibleForResolutionMask(literalSelector);
 
         for (size_t i = 0; i < lClause->literals.size(); ++i) {
@@ -513,7 +513,7 @@ void SuperpositionSolver::applySuperposition(
 
     auto processClausePair = [this, matchAndRewriteSubterms](
         const ClausePtr& fromClause, const ClausePtr& intoClause) {
-        auto fromEligibleMask = fromClause->getEligibleForParamodulationMask(literalSelector, true);
+        auto fromEligibleMask = fromClause->getEligibleForParamodulationMask(literalSelector, false);
         auto intoEligibleMask = intoClause->getEligibleForResolutionMask(literalSelector);
 
         for (size_t i = 0; i < fromClause->literals.size(); ++i) {
