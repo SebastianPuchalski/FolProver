@@ -396,8 +396,318 @@ TEST_F(SolverTest, TPTP_Puz035_Minus_3) {
     solveAndCheck("Problems/PUZ/PUZ035-3.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
+TEST_F(SolverTest, TPTP_Puz035_Minus_4) {
+    solveAndCheck("Problems/PUZ/PUZ035-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
 TEST_F(SolverTest, TPTP_Puz035_Minus_5) {
     solveAndCheck("Problems/PUZ/PUZ035-5.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz035_Minus_6) {
+    solveAndCheck("Problems/PUZ/PUZ035-6.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz035_Minus_7) {
+    solveAndCheck("Problems/PUZ/PUZ035-7.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz036_1_005) {
+    solveAndCheck("Problems/PUZ/PUZ036-1.005.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz037_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ037-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz037_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ037-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz037_Minus_3) {
+    solveAndCheck("Problems/PUZ/PUZ037-3.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz038_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ038-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz039_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ039-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz039_Minus_10) {
+    solveAndCheck("Problems/PUZ/PUZ039-10.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz040_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ040-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz041_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ041-1.p", Solver::OutStatus::UNKNOWN);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz042_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ042-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz043_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ043-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz044_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ044-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz045_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ045-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz046_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ046-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz047_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ047+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz047_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ047-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz048_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ048-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz049_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ049-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz049_Minus_10) {
+    solveAndCheck("Problems/PUZ/PUZ049-10.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz050_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ050-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz051_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ051-1.p", Solver::OutStatus::UNKNOWN);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz051_Minus_10) {
+    solveAndCheck("Problems/PUZ/PUZ051-10.p", Solver::OutStatus::UNKNOWN);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz052_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ052-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz053_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ053-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz054_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ054-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz054_Minus_10) {
+    solveAndCheck("Problems/PUZ/PUZ054-10.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz055_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ055-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ056-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz056_Minus_2_005) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.005.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_010) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.010.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_015) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.015.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_020) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.020.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_022) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.022.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_025) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.025.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_027) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.027.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_2_030) {
+    solveAndCheck("Problems/PUZ/PUZ056-2.030.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_10_020) {
+    solveAndCheck("Problems/PUZ/PUZ056-10.020.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz056_Minus_10_030) {
+    solveAndCheck("Problems/PUZ/PUZ056-10.030.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz057_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ057-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz058_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ058-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz059_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ059-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz060_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ060+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Puz061_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ061+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz062_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ062-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz062_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ062-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz063_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ063-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz063_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ063-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz064_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ064-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz064_Minus_2) {
+    solveAndCheck("Problems/PUZ/PUZ064-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz065_Plus_1) {
+    // [       OK] SolverTest.TPTP_Puz065_Plus_1(12656 ms)
+    solveAndCheck("Problems/PUZ/PUZ065+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz066_Plus_1) {
+    // [       OK ] SolverTest.TPTP_Puz066_Plus_1 (9932 ms)
+    solveAndCheck("Problems/PUZ/PUZ066+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz067_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ067+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Puz068_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ068+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz068_Plus_2) {
+    // [       OK ] SolverTest.TPTP_Puz068_Plus_2 (8412 ms)
+    solveAndCheck("Problems/PUZ/PUZ068+2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz068_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ068-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz069_Plus_1) {
+    // [       OK ] SolverTest.TPTP_Puz069_Plus_1 (3808 ms)
+    solveAndCheck("Problems/PUZ/PUZ069+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz069_Plus_2) {
+    // [       OK ] SolverTest.TPTP_Puz069_Plus_2 (9264 ms)
+    solveAndCheck("Problems/PUZ/PUZ069+2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz069_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ069-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz070_Plus_1) {
+    // [       OK ] SolverTest.TPTP_Puz070_Plus_1 (3136 ms)
+    solveAndCheck("Problems/PUZ/PUZ070+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz070_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ070-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz071_Plus_1) {
+    // [       OK ] SolverTest.TPTP_Puz071_Plus_1 (3539 ms)
+    solveAndCheck("Problems/PUZ/PUZ071+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz071_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ071-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz072_Plus_1) {
+    // [       OK ] SolverTest.TPTP_Puz072_Plus_1 (12515 ms)
+    solveAndCheck("Problems/PUZ/PUZ072+1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz072_Minus_1) {
+    solveAndCheck("Problems/PUZ/PUZ072-1.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz073_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ073+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz074_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ074+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz075_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ075+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz076_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ076+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz077_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ077+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz078_Plus_1) {
+    solveAndCheck("Problems/PUZ/PUZ078+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz079_Plus_2) {
+    // [       OK ] SolverTest.TPTP_Puz079_Plus_2 (5142 ms)
+    solveAndCheck("Problems/PUZ/PUZ079+2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Puz080_Plus_2) {
+    // [       OK ] SolverTest.TPTP_Puz080_Plus_2 (6635 ms)
+    solveAndCheck("Problems/PUZ/PUZ080+2.p", Solver::OutStatus::SATISFIABLE);
 }
 
 // =========================================================================
