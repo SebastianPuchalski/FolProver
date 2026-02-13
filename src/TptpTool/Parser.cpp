@@ -468,6 +468,8 @@ namespace TptpTool {
                 if (next != '\'' && next != '\\') {
                     error("Unknown escape sequence: \\" + std::string(1, next));
                 }
+                result += next;
+                i++;
                 continue;
             }
             result += text[i];
