@@ -375,6 +375,8 @@ bool areAlphaEquivalentRec(const ExpressionPtr& expr1,
         if (std::static_pointer_cast<PredicateFormula>(expr1)->symbol !=
             std::static_pointer_cast<PredicateFormula>(expr2)->symbol) return false;
         break;
+    case Expression::Type::EQUALITY:
+        break;
     case Expression::Type::FUNCTION: {
         auto func1 = std::static_pointer_cast<FunctionTerm>(expr1);
         auto func2 = std::static_pointer_cast<FunctionTerm>(expr2);
