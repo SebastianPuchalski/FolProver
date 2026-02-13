@@ -375,6 +375,7 @@ ClausePtr SuperpositionSolver::applyDistinctObjectSimplification(const ClausePtr
 void SuperpositionSolver::applyBinaryResolution(
     const ClausePtr& clause1, const ClausePtr& clause2,
     Clauses& resolvents) const {
+    // Skip self-resolution: it generates valid macro-steps, but they are redundant for completeness
     if (clause1 == clause2) return;
 
     auto resolve = [&](const ClausePtr& lClause, const ClausePtr& rClause) {
@@ -384,7 +385,7 @@ void SuperpositionSolver::applyBinaryResolution(
         for (size_t i = 0; i < lClause->literals.size(); ++i) {
             if (!lEligibleMask[i]) continue;
             auto lLiteral = lClause->literals[i];
-            if (lLiteral->exprType == Expression::Type::NEGATION) continue;
+            if (lLiteral->exprType != Expression::Type::PREDICATE) continue;
 
             for (size_t j = 0; j < rClause->literals.size(); ++j) {
                 if (!rEligibleMask[j]) continue;
@@ -610,8 +611,8 @@ void SuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,
                 Literals newLiterals;
                 for (size_t j = 0; j < clause->literals.size(); ++j) {
                     if (j != i) {
-                        newLiterals.push_back(
-                            std::static_pointer_cast<Formula>(substitute(clause->literals[j], mgu)));
+                        newLiterals.push_back(std::static_pointer_cast<Formula>(
+                            substitute(clause->literals[j], mgu)));
                     }
                 }
                 auto rule = "equality_resolution";
@@ -656,9 +657,7 @@ void SuperpositionSolver::applyEqualityFactoring(const ClausePtr& clause,
                         for (size_t k = 0; k < literalCount; ++k) {
                             if (k != i) {
                                 auto newLiteral = substitute(clause->literals[k], mgu);
-                                newLiterals.push_back(
-                                    std::static_pointer_cast<Formula>(newLiteral)
-                                );
+                                newLiterals.push_back(std::static_pointer_cast<Formula>(newLiteral));
                             }
                         }
                         auto rule = "equality_factoring";

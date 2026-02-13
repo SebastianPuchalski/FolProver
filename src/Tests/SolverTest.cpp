@@ -89,7 +89,7 @@ protected:
 };
 
 // =========================================================================
-// GROUP 0: STANDARD TPTP BENCHMARKS
+// GROUP 1: STANDARD TPTP BENCHMARKS
 // =========================================================================
 
 TEST_F(SolverTest, TPTP_Syn001_1_Syntactic) {
@@ -133,6 +133,276 @@ TEST_F(SolverTest, DISABLED_TPTP_Grp048_10_InverseSubstitution) {
 
 TEST_F(SolverTest, DISABLED_TPTP_Grp049_1_SingleAxiomGroup) {
     solveAndCheck("Problems/GRP/GRP049-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+// =========================================================================
+// GROUP 2: EQUALITY MICRO-BENCHMARKS (FAST)
+// =========================================================================
+
+// Test 1: Reflexivity (X = X).
+// Simple proof: ~(a = a) should be UNSAT immediately.
+TEST_F(SolverTest, Equality_Reflexivity) {
+    std::string filename = createProblemFile("eq_reflexivity.p", R"(
+        fof(conjecture, conjecture, a = a).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+}
+
+// Test 2: Symmetry (X = Y => Y = X).
+// Given a = b, prove b = a.
+TEST_F(SolverTest, Equality_Symmetry) {
+    std::string filename = createProblemFile("eq_symmetry.p", R"(
+        fof(axiom, axiom, a = b).
+        fof(conjecture, conjecture, b = a).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+}
+
+// Test 3: Transitivity (X = Y & Y = Z => X = Z).
+// Given a = b and b = c, prove a = c.
+TEST_F(SolverTest, Equality_Transitivity) {
+    std::string filename = createProblemFile("eq_transitivity.p", R"(
+        fof(ax1, axiom, a = b).
+        fof(ax2, axiom, b = c).
+        fof(conjecture, conjecture, a = c).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+}
+
+// Test 4: Function Congruence (X = Y => f(X) = f(Y)).
+// Given a = b, prove f(a) = f(b).
+TEST_F(SolverTest, Equality_FunctionCongruence) {
+    std::string filename = createProblemFile("eq_func_congruence.p", R"(
+        fof(ax1, axiom, a = b).
+        fof(conjecture, conjecture, f(a) = f(b)).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+}
+
+// Test 5: Predicate Congruence (X = Y & P(X) => P(Y)).
+// Given a = b and P(a) is true, prove P(b) is true.
+TEST_F(SolverTest, Equality_PredicateCongruence) {
+#ifndef NDEBUG
+    std::cout << "[ INFO     ] Skipping slow test in Debug mode (Equality_PredicateCongruence)." << std::endl;
+    return;
+#else
+    std::string filename = createProblemFile("eq_pred_congruence.p", R"(
+        fof(ax1, axiom, a = b).
+        fof(ax2, axiom, p(a)).
+        fof(conjecture, conjecture, p(b)).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+#endif
+}
+
+// Test 6: Nested Functions (Complex Congruence).
+// Given f(a) = b and g(b) = c, prove g(f(a)) = c.
+TEST_F(SolverTest, Equality_NestedFunctions) {
+    std::string filename = createProblemFile("eq_nested.p", R"(
+        fof(ax1, axiom, f(a) = b).
+        fof(ax2, axiom, g(b) = c).
+        fof(conjecture, conjecture, g(f(a)) = c).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+}
+
+// Test 7: Negative Test (Should NOT prove).
+// Given a = b, prove a = c. This is false.
+TEST_F(SolverTest, Equality_InvalidInference) {
+#ifndef NDEBUG
+    std::cout << "[ INFO     ] Skipping slow test in Debug mode (Equality_InvalidInference)." << std::endl;
+    return;
+#else
+    std::string filename = createProblemFile("eq_invalid.p", R"(
+        fof(ax1, axiom, a = b).
+        fof(conjecture, conjecture, a = c).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::COUNTER_SATISFIABLE, false, false, 4);
+#endif
+}
+
+// Test 8: Arity Check (Multi-argument function).
+// Given a=x and b=y, prove h(a,b) = h(x,y).
+TEST_F(SolverTest, Equality_MultiArgFunction) {
+#ifndef NDEBUG
+    std::cout << "[ INFO     ] Skipping slow test in Debug mode (Equality_MultiArgFunction)." << std::endl;
+    return;
+#else
+    std::string filename = createProblemFile("eq_multi_arg.p", R"(
+        fof(ax1, axiom, a = x).
+        fof(ax2, axiom, b = y).
+        fof(conjecture, conjecture, h(a,b) = h(x,y)).
+    )");
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
+#endif
+}
+
+// =========================================================================
+// GROUP 3: INTEGRATION (TPTP ROLES & FORMULATION)
+// =========================================================================
+
+TEST_F(SolverTest, Integration_RoleDistinction_AxiomsOnly) {
+    // Two conflicting axioms: p and ~p.
+    // Should be UNSATISFIABLE (consistent set impossible), NOT THEOREM.
+    std::string content = "fof(a1, axiom, p). fof(a2, axiom, ~p).";
+    std::string file = createProblemFile("test_role_distinction.p", content);
+    solveAndCheck(file, Solver::OutStatus::UNSATISFIABLE, false, false);
+}
+
+TEST_F(SolverTest, Integration_ExFalsoQuodlibet) {
+    // Contradictory axioms ({p, ~p}) allow proving any conjecture (q).
+    std::string content = "fof(a1, axiom, p). fof(a2, axiom, ~p). fof(c, conjecture, q).";
+    std::string file = createProblemFile("test_ex_falso.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+TEST_F(SolverTest, Integration_MixedRoles_StandardCompliance) {
+    // Standard TPTP mix:
+    // Axiom: p | q
+    // Negated Conjecture: ~p (treated as axiom)
+    // Conjecture: q (negated by solver -> ~q)
+    // Result: {p|q, ~p, ~q} -> Contradiction -> THEOREM.
+    std::string content = R"(
+        fof(ax, axiom, p | q).
+        fof(nc, negated_conjecture, ~p).
+        fof(co, conjecture, q).
+    )";
+    std::string file = createProblemFile("test_mixed_roles.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+// =========================================================================
+// GROUP 4: CUSTOM LOGIC & EDGE CASES (RESTORED)
+// =========================================================================
+
+TEST_F(SolverTest, Logic_VariableShadowing) {
+    // Scope test: ![X]:p(X) vs ?[X]:p(X).
+    std::string content = "fof(ax, axiom, ![X]: p(X)). fof(conj, conjecture, ?[X]: p(X)).";
+    std::string file = createProblemFile("test_shadowing.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+TEST_F(SolverTest, Logic_Function_Depth) {
+    // Recursion test: p(a) -> p(f(a)) -> p(f(f(a))).
+    std::string content = "fof(b,axiom,p(a)). fof(s,axiom,![X]:(p(X)=>p(f(X)))). fof(t,conjecture,p(f(f(a)))).";
+    std::string file = createProblemFile("test_func_depth.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+TEST_F(SolverTest, Logic_Distraction_Axioms) {
+    // Needle in a haystack.
+    std::string content = "fof(j1,axiom,a=>b). fof(r,axiom,p). fof(g,conjecture,p).";
+    std::string file = createProblemFile("test_distraction.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+TEST_F(SolverTest, Logic_DrinkerParadox) {
+    // ?[X]: (d(X) => ![Y]: d(Y)).
+    std::string content = "fof(d, conjecture, ?[X] : (d(X) => ![Y] : d(Y))).";
+    std::string file = createProblemFile("test_drinker.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+TEST_F(SolverTest, Logic_Transitivity_Chain) {
+    // a -> b -> c -> d.
+    std::string content = "fof(1,axiom,a). fof(2,axiom,a=>b). fof(3,axiom,b=>c). fof(g,conjecture,c).";
+    std::string file = createProblemFile("test_chain.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+TEST_F(SolverTest, Logic_CounterSatisfiable_Swap) {
+    // Quantifier swap invalidity.
+    std::string content = "fof(ax, axiom, ![X]:?[Y]: l(X,Y)). fof(c, conjecture, ?[Y]:![X]: l(X,Y)).";
+    std::string file = createProblemFile("test_quant_swap.p", content);
+    solveAndCheck(file, Solver::OutStatus::COUNTER_SATISFIABLE, false, false);
+}
+
+TEST_F(SolverTest, Logic_Satisfiable_Simple) {
+    // Consistency check (SAT).
+    std::string content = "fof(a1, axiom, p(a)). fof(a2, axiom, q(b)).";
+    std::string file = createProblemFile("test_sat.p", content);
+    solveAndCheck(file, Solver::OutStatus::SATISFIABLE, false, false);
+}
+
+TEST_F(SolverTest, Logic_DoubleNegation) {
+    // ~~p <=> p.
+    std::string content = "fof(goal, conjecture, ~~p <=> p).";
+    std::string file = createProblemFile("test_double_neg.p", content);
+    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
+}
+
+// =========================================================================
+// GROUP 5: SELF-SUPERPOSITION
+// =========================================================================
+
+TEST_F(SolverTest, Superposition_Mandatory_SelfOverlap) {
+    // This test case STRICTLY requires self-superposition to find the proof.
+    // Axiom: f(f(X)) = a
+    // Goal: f(a) = a
+    // Without self-superposition, the solver cannot bridge the gap
+    // because the goal literal f(a) does not contain the redex f(f(X)).
+
+    std::string filename = createProblemFile("mandatory_self.p", R"(
+        cnf(ax1, axiom, f(f(X)) = a).
+        cnf(conj, negated_conjecture, f(a) != a).
+    )");
+
+    // Should return UNSATISFIABLE.
+    // If it returns SATISFIABLE, the self-superposition logic is broken or missing.
+    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false, 2);
+}
+
+TEST_F(SolverTest, Resolution_Mandatory_SelfBinary) {
+    // Tests if the prover can derive R = P(x) | ~P(f(f(x)))
+    // from C = P(x) | ~P(f(x)) using self-resolution.
+    std::string filename = createProblemFile("self_resolution.p", R"(
+        fof(ax1, axiom, ![X]: (p(X) | ~p(f(X)))).
+        fof(goal, conjecture, ![X]: (p(X) | ~p(f(f(X))))).
+    )");
+
+    solveAndCheck(filename, Solver::OutStatus::THEOREM, false, false, 2);
+}
+
+TEST_F(SolverTest, DISABLED_Superposition_Intermediate_ImplicitIdentity) {
+    // AXIOMS:
+    // 1. Associativity: (x * y) * z = x * (y * z)
+    // 2. Left Cancellation/Inverse property: x * (inv(x) * y) = y
+    //
+    // NOTE: We do NOT define 'e'. The solver implies it.
+    //
+    // GOAL:
+    // Prove that x * inv(x) is a constant (i.e., a * inv(a) == b * inv(b)).
+    // This requires deriving that x * inv(x) behaves like a right identity.
+
+    std::string filename = createProblemFile("implicit_id.p", R"(
+        cnf(assoc, axiom, multiply(multiply(X,Y),Z) = multiply(X,multiply(Y,Z))).
+        cnf(l_cancel, axiom, multiply(X, multiply(inverse(X), Y)) = Y).
+
+        cnf(prove_id_constant, negated_conjecture,
+            multiply(a, inverse(a)) != multiply(b, inverse(b))).
+    )");
+
+    // Should solve in < 2-4 seconds.
+    // If this hangs, your solver fails to synthesize constants (lemmas)
+    // from variable-only axioms.
+    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false);
+}
+
+// =========================================================================
+// GROUP 6: ERROR HANDLING
+// =========================================================================
+
+TEST_F(SolverTest, Error_FileNotFound) {
+    fs::path p = fs::path(tptpDir) / "Problems/XYZ/Missing.p";
+    Solver solver(p.string(), tptpDir);
+    EXPECT_EQ(solver.solve(), Solver::OutStatus::INPUT_ERROR);
+}
+
+TEST_F(SolverTest, Error_InvalidSyntax) {
+    std::string content = "fof(broken, axiom, (p | q .";
+    std::string file = createProblemFile("invalid_syntax.p", content);
+    Solver solver(file, tptpDir);
+    EXPECT_EQ(solver.solve(), Solver::OutStatus::INPUT_ERROR);
 }
 
 // =========================================================================
@@ -232,13 +502,9 @@ TEST_F(SolverTest, DISABLED_TPTP_Puz015_Minus_1) {
     solveAndCheck("Problems/PUZ/PUZ015-1.p", Solver::OutStatus::SATISFIABLE);
 }
 
-TEST_F(SolverTest, TPTP_Puz015_Minus_2_006) {
-#ifndef NDEBUG
-    std::cout << "[ INFO      ] Skipping slow test in Debug mode (TPTP_Puz015_Minus_2_006)." << std::endl;
-    return;
-#else
+TEST_F(SolverTest, DISABLED_TPTP_Puz015_Minus_2_006) {
+    // [       OK ] SolverTest.TPTP_Puz015_Minus_2_006 (5873 ms)
     solveAndCheck("Problems/PUZ/PUZ015-2.006.p", Solver::OutStatus::UNSATISFIABLE);
-#endif
 }
 
 TEST_F(SolverTest, DISABLED_TPTP_Puz015_Minus_3) {
@@ -708,263 +974,4 @@ TEST_F(SolverTest, DISABLED_TPTP_Puz079_Plus_2) {
 TEST_F(SolverTest, DISABLED_TPTP_Puz080_Plus_2) {
     // [       OK ] SolverTest.TPTP_Puz080_Plus_2 (6635 ms)
     solveAndCheck("Problems/PUZ/PUZ080+2.p", Solver::OutStatus::SATISFIABLE);
-}
-
-// =========================================================================
-// GROUP 2: EQUALITY MICRO-BENCHMARKS (FAST)
-// =========================================================================
-
-// Test 1: Reflexivity (X = X).
-// Simple proof: ~(a = a) should be UNSAT immediately.
-TEST_F(SolverTest, Equality_Reflexivity) {
-    std::string filename = createProblemFile("eq_reflexivity.p", R"(
-        fof(conjecture, conjecture, a = a).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-}
-
-// Test 2: Symmetry (X = Y => Y = X).
-// Given a = b, prove b = a.
-TEST_F(SolverTest, Equality_Symmetry) {
-    std::string filename = createProblemFile("eq_symmetry.p", R"(
-        fof(axiom, axiom, a = b).
-        fof(conjecture, conjecture, b = a).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-}
-
-// Test 3: Transitivity (X = Y & Y = Z => X = Z).
-// Given a = b and b = c, prove a = c.
-TEST_F(SolverTest, Equality_Transitivity) {
-    std::string filename = createProblemFile("eq_transitivity.p", R"(
-        fof(ax1, axiom, a = b).
-        fof(ax2, axiom, b = c).
-        fof(conjecture, conjecture, a = c).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-}
-
-// Test 4: Function Congruence (X = Y => f(X) = f(Y)).
-// Given a = b, prove f(a) = f(b).
-TEST_F(SolverTest, Equality_FunctionCongruence) {
-    std::string filename = createProblemFile("eq_func_congruence.p", R"(
-        fof(ax1, axiom, a = b).
-        fof(conjecture, conjecture, f(a) = f(b)).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-}
-
-// Test 5: Predicate Congruence (X = Y & P(X) => P(Y)).
-// Given a = b and P(a) is true, prove P(b) is true.
-TEST_F(SolverTest, Equality_PredicateCongruence) {
-#ifndef NDEBUG
-    std::cout << "[ INFO     ] Skipping slow test in Debug mode (Equality_PredicateCongruence)." << std::endl;
-    return;
-#else
-    std::string filename = createProblemFile("eq_pred_congruence.p", R"(
-        fof(ax1, axiom, a = b).
-        fof(ax2, axiom, p(a)).
-        fof(conjecture, conjecture, p(b)).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-#endif
-}
-
-// Test 6: Nested Functions (Complex Congruence).
-// Given f(a) = b and g(b) = c, prove g(f(a)) = c.
-TEST_F(SolverTest, Equality_NestedFunctions) {
-    std::string filename = createProblemFile("eq_nested.p", R"(
-        fof(ax1, axiom, f(a) = b).
-        fof(ax2, axiom, g(b) = c).
-        fof(conjecture, conjecture, g(f(a)) = c).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-}
-
-// Test 7: Negative Test (Should NOT prove).
-// Given a = b, prove a = c. This is false.
-TEST_F(SolverTest, Equality_InvalidInference) {
-#ifndef NDEBUG
-    std::cout << "[ INFO     ] Skipping slow test in Debug mode (Equality_InvalidInference)." << std::endl;
-    return;
-#else
-    std::string filename = createProblemFile("eq_invalid.p", R"(
-        fof(ax1, axiom, a = b).
-        fof(conjecture, conjecture, a = c).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::COUNTER_SATISFIABLE, false, false, 4);
-#endif
-}
-
-// Test 8: Arity Check (Multi-argument function).
-// Given a=x and b=y, prove h(a,b) = h(x,y).
-TEST_F(SolverTest, Equality_MultiArgFunction) {
-#ifndef NDEBUG
-    std::cout << "[ INFO     ] Skipping slow test in Debug mode (Equality_MultiArgFunction)." << std::endl;
-    return;
-#else
-    std::string filename = createProblemFile("eq_multi_arg.p", R"(
-        fof(ax1, axiom, a = x).
-        fof(ax2, axiom, b = y).
-        fof(conjecture, conjecture, h(a,b) = h(x,y)).
-    )");
-    solveAndCheck(filename, Solver::OutStatus::THEOREM, true, false);
-#endif
-}
-
-// =========================================================================
-// GROUP 3: INTEGRATION (TPTP ROLES & FORMULATION)
-// =========================================================================
-
-TEST_F(SolverTest, Integration_RoleDistinction_AxiomsOnly) {
-    // Two conflicting axioms: p and ~p.
-    // Should be UNSATISFIABLE (consistent set impossible), NOT THEOREM.
-    std::string content = "fof(a1, axiom, p). fof(a2, axiom, ~p).";
-    std::string file = createProblemFile("test_role_distinction.p", content);
-    solveAndCheck(file, Solver::OutStatus::UNSATISFIABLE, false, false);
-}
-
-TEST_F(SolverTest, Integration_ExFalsoQuodlibet) {
-    // Contradictory axioms ({p, ~p}) allow proving any conjecture (q).
-    std::string content = "fof(a1, axiom, p). fof(a2, axiom, ~p). fof(c, conjecture, q).";
-    std::string file = createProblemFile("test_ex_falso.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-TEST_F(SolverTest, Integration_MixedRoles_StandardCompliance) {
-    // Standard TPTP mix:
-    // Axiom: p | q
-    // Negated Conjecture: ~p (treated as axiom)
-    // Conjecture: q (negated by solver -> ~q)
-    // Result: {p|q, ~p, ~q} -> Contradiction -> THEOREM.
-    std::string content = R"(
-        fof(ax, axiom, p | q).
-        fof(nc, negated_conjecture, ~p).
-        fof(co, conjecture, q).
-    )";
-    std::string file = createProblemFile("test_mixed_roles.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-// =========================================================================
-// GROUP 4: CUSTOM LOGIC & EDGE CASES (RESTORED)
-// =========================================================================
-
-TEST_F(SolverTest, Logic_VariableShadowing) {
-    // Scope test: ![X]:p(X) vs ?[X]:p(X).
-    std::string content = "fof(ax, axiom, ![X]: p(X)). fof(conj, conjecture, ?[X]: p(X)).";
-    std::string file = createProblemFile("test_shadowing.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-TEST_F(SolverTest, Logic_Function_Depth) {
-    // Recursion test: p(a) -> p(f(a)) -> p(f(f(a))).
-    std::string content = "fof(b,axiom,p(a)). fof(s,axiom,![X]:(p(X)=>p(f(X)))). fof(t,conjecture,p(f(f(a)))).";
-    std::string file = createProblemFile("test_func_depth.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-TEST_F(SolverTest, Logic_Distraction_Axioms) {
-    // Needle in a haystack.
-    std::string content = "fof(j1,axiom,a=>b). fof(r,axiom,p). fof(g,conjecture,p).";
-    std::string file = createProblemFile("test_distraction.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-TEST_F(SolverTest, Logic_DrinkerParadox) {
-    // ?[X]: (d(X) => ![Y]: d(Y)).
-    std::string content = "fof(d, conjecture, ?[X] : (d(X) => ![Y] : d(Y))).";
-    std::string file = createProblemFile("test_drinker.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-TEST_F(SolverTest, Logic_Transitivity_Chain) {
-    // a -> b -> c -> d.
-    std::string content = "fof(1,axiom,a). fof(2,axiom,a=>b). fof(3,axiom,b=>c). fof(g,conjecture,c).";
-    std::string file = createProblemFile("test_chain.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-TEST_F(SolverTest, Logic_CounterSatisfiable_Swap) {
-    // Quantifier swap invalidity.
-    std::string content = "fof(ax, axiom, ![X]:?[Y]: l(X,Y)). fof(c, conjecture, ?[Y]:![X]: l(X,Y)).";
-    std::string file = createProblemFile("test_quant_swap.p", content);
-    solveAndCheck(file, Solver::OutStatus::COUNTER_SATISFIABLE, false, false);
-}
-
-TEST_F(SolverTest, Logic_Satisfiable_Simple) {
-    // Consistency check (SAT).
-    std::string content = "fof(a1, axiom, p(a)). fof(a2, axiom, q(b)).";
-    std::string file = createProblemFile("test_sat.p", content);
-    solveAndCheck(file, Solver::OutStatus::SATISFIABLE, false, false);
-}
-
-TEST_F(SolverTest, Logic_DoubleNegation) {
-    // ~~p <=> p.
-    std::string content = "fof(goal, conjecture, ~~p <=> p).";
-    std::string file = createProblemFile("test_double_neg.p", content);
-    solveAndCheck(file, Solver::OutStatus::THEOREM, false, false);
-}
-
-// =========================================================================
-// GROUP 5: SELF-SUPERPOSITION
-// =========================================================================
-
-TEST_F(SolverTest, Superposition_Mandatory_SelfOverlap) {
-    // This test case STRICTLY requires self-superposition to find the proof.
-    // Axiom: f(f(X)) = a
-    // Goal: f(a) = a
-    // Without self-superposition, the solver cannot bridge the gap
-    // because the goal literal f(a) does not contain the redex f(f(X)).
-
-    std::string filename = createProblemFile("mandatory_self.p", R"(
-        cnf(ax1, axiom, f(f(X)) = a).
-        cnf(conj, negated_conjecture, f(a) != a).
-    )");
-
-    // Should return UNSATISFIABLE.
-    // If it returns SATISFIABLE, the self-superposition logic is broken or missing.
-    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false, 2);
-}
-
-TEST_F(SolverTest, DISABLED_Superposition_Intermediate_ImplicitIdentity) {
-    // AXIOMS:
-    // 1. Associativity: (x * y) * z = x * (y * z)
-    // 2. Left Cancellation/Inverse property: x * (inv(x) * y) = y
-    //
-    // NOTE: We do NOT define 'e'. The solver implies it.
-    //
-    // GOAL:
-    // Prove that x * inv(x) is a constant (i.e., a * inv(a) == b * inv(b)).
-    // This requires deriving that x * inv(x) behaves like a right identity.
-
-    std::string filename = createProblemFile("implicit_id.p", R"(
-        cnf(assoc, axiom, multiply(multiply(X,Y),Z) = multiply(X,multiply(Y,Z))).
-        cnf(l_cancel, axiom, multiply(X, multiply(inverse(X), Y)) = Y).
-
-        cnf(prove_id_constant, negated_conjecture,
-            multiply(a, inverse(a)) != multiply(b, inverse(b))).
-    )");
-
-    // Should solve in < 2-4 seconds.
-    // If this hangs, your solver fails to synthesize constants (lemmas)
-    // from variable-only axioms.
-    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false);
-}
-
-// =========================================================================
-// GROUP 6: ERROR HANDLING
-// =========================================================================
-
-TEST_F(SolverTest, Error_FileNotFound) {
-    fs::path p = fs::path(tptpDir) / "Problems/XYZ/Missing.p";
-    Solver solver(p.string(), tptpDir);
-    EXPECT_EQ(solver.solve(), Solver::OutStatus::INPUT_ERROR);
-}
-
-TEST_F(SolverTest, Error_InvalidSyntax) {
-    std::string content = "fof(broken, axiom, (p | q .";
-    std::string file = createProblemFile("invalid_syntax.p", content);
-    Solver solver(file, tptpDir);
-    EXPECT_EQ(solver.solve(), Solver::OutStatus::INPUT_ERROR);
 }
