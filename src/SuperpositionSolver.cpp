@@ -929,8 +929,9 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyClauseSubsumption(
         if (subsumingClauseIndex == subsuming->literals.size()) return true;
         auto patternLiteral = subsuming->literals[subsumingClauseIndex];
         for (const auto& targetLiteral : subsumed->literals) {
-            Substitution nextSubstitution = currentSubstitution;
-            if (Unification::match(patternLiteral, targetLiteral, nextSubstitution)) {
+            auto substitutions = Unification::matchCommutative(
+                patternLiteral, targetLiteral, currentSubstitution);
+            for (const auto& nextSubstitution : substitutions) {
                 if (checkRecursively(subsumingClauseIndex + 1, nextSubstitution)) {
                     return true;
                 }

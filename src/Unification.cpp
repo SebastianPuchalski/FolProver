@@ -100,6 +100,7 @@ bool match(const ExpressionPtr& pattern, const ExpressionPtr& target, Substituti
 
     if (pattern->exprType != target->exprType) return false;
     if (pattern->getChildCount() != target->getChildCount()) return false;
+
     if (pattern->exprType == Expression::Type::FUNCTION) {
         auto function1 = std::static_pointer_cast<FunctionTerm>(pattern);
         auto function2 = std::static_pointer_cast<FunctionTerm>(target);
@@ -122,6 +123,44 @@ bool match(const ExpressionPtr& pattern, const ExpressionPtr& target, Substituti
         if (!match(pattern->getChild(i), target->getChild(i), substitution)) return false;
     }
     return true;
+}
+
+std::vector<Substitution> matchCommutative(const ExpressionPtr& pattern,
+    const ExpressionPtr& target, const Substitution& substitution) {
+    assert(pattern && target);
+    assert(pattern->isTerm() || std::static_pointer_cast<Formula>(pattern)->isLiteral());
+    assert(target->isTerm() || std::static_pointer_cast<Formula>(target)->isLiteral());
+
+    std::vector<Substitution> result;
+    if (pattern->exprType != target->exprType) return result;
+
+    if (pattern->exprType == Expression::Type::NEGATION) {
+        auto patternNegation = std::static_pointer_cast<NegationFormula>(pattern);
+        auto targetNegation = std::static_pointer_cast<NegationFormula>(target);
+        return matchCommutative(patternNegation->child, targetNegation->child, substitution);
+    }
+
+    if (pattern->exprType == Expression::Type::EQUALITY) {
+        auto patternEquality = std::static_pointer_cast<EqualityFormula>(pattern);
+        auto targetEquality = std::static_pointer_cast<EqualityFormula>(target);
+        Substitution substitutionStd = substitution;
+        if (match(patternEquality->left, targetEquality->left, substitutionStd) &&
+            match(patternEquality->right, targetEquality->right, substitutionStd)) {
+            result.push_back(std::move(substitutionStd));
+        }
+        Substitution substitutionCross = substitution;
+        if (match(patternEquality->left, targetEquality->right, substitutionCross) &&
+            match(patternEquality->right, targetEquality->left, substitutionCross)) {
+            result.push_back(std::move(substitutionCross));
+        }
+        return result;
+    }
+
+    Substitution substitutionStd = substitution;
+    if (match(pattern, target, substitutionStd)) {
+        result.push_back(std::move(substitutionStd));
+    }
+    return result;
 }
 
 ExpressionPtr substitute(const ExpressionPtr& expr,
