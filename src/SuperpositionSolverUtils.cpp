@@ -258,14 +258,16 @@ Mask LiteralSelector::selectComplexExceptRRHorn(const Literals& literals) {
 //------------------------------------------------------------------------------
 
 Clause::Clause(Literals literals, ProofNodePtr input) :
+    origin(Origin::INPUT),
     literals(std::move(literals)),
     input(std::move(input)),
     parent1(nullptr),
     parent2(nullptr) {
 }
 
-Clause::Clause(Literals literals, std::string rule,
+Clause::Clause(Literals literals, std::string rule, bool simplification,
     ClausePtr parent1, ClausePtr parent2) :
+    origin(simplification ? Origin::SIMPLIFICATION : Origin::INFERENCE),
     literals(std::move(literals)),
     input(nullptr),
     rule(std::move(rule)),
@@ -277,10 +279,10 @@ ClausePtr Clause::create(Literals literals, ProofNodePtr input) {
     return ClausePtr(new Clause(std::move(literals), std::move(input)));
 }
 
-ClausePtr Clause::create(Literals literals, std::string rule,
+ClausePtr Clause::create(Literals literals, std::string rule, bool simplification,
     ClausePtr parent1, ClausePtr parent2) {
     ClausePtr clause(new Clause(std::move(literals),
-        std::move(rule), std::move(parent1), std::move(parent2)));
+        std::move(rule), simplification, std::move(parent1), std::move(parent2)));
     if (clause->parent1) {
         clause->parent1->children.push_back(clause);
     }

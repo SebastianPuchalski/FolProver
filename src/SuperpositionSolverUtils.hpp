@@ -41,6 +41,13 @@ using ClausePtr = std::shared_ptr<Clause>;
 using Clauses = std::vector<ClausePtr>;
 
 struct Clause {
+    enum class Origin {
+        INPUT,
+        INFERENCE,
+        SIMPLIFICATION
+    };
+    Origin origin;
+
     const Literals literals;
 
     const ProofNodePtr input;
@@ -51,7 +58,7 @@ struct Clause {
 
 private:
     Clause(Literals literals, ProofNodePtr input);
-    Clause(Literals literals, std::string rule,
+    Clause(Literals literals, std::string rule, bool simplification,
         ClausePtr parent1, ClausePtr parent2 = nullptr);
 
     std::vector<std::weak_ptr<Clause>> children;
@@ -63,7 +70,7 @@ private:
 
 public:
     static ClausePtr create(Literals literals, ProofNodePtr input);
-    static ClausePtr create(Literals literals, std::string rule,
+    static ClausePtr create(Literals literals, std::string rule, bool simplification,
         ClausePtr parent1, ClausePtr parent2 = nullptr);
 
     Mask getSelectedLiteralsMask(const LiteralSelector& selector);
