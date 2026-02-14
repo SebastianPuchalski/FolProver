@@ -406,7 +406,7 @@ TEST_F(SolverTest, Error_InvalidSyntax) {
 }
 
 // =========================================================================
-// GROUP 1: PUZ TPTP BENCHMARKS
+// GROUP 7: PUZ TPTP BENCHMARKS
 // =========================================================================
 
 TEST_F(SolverTest, TPTP_Puz001_Minus_3) {
@@ -975,3 +975,395 @@ TEST_F(SolverTest, DISABLED_TPTP_Puz080_Plus_2) {
     // [       OK ] SolverTest.TPTP_Puz080_Plus_2 (6635 ms)
     solveAndCheck("Problems/PUZ/PUZ080+2.p", Solver::OutStatus::SATISFIABLE);
 }
+
+// =========================================================================
+// GROUP 8: GRP TPTP BENCHMARKS
+// =========================================================================
+
+TEST_F(SolverTest, TPTP_Grp001_Plus_6) {
+    solveAndCheck("Problems/GRP/GRP001+6.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Grp001_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP001-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp001_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP001-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp001_Minus_3) {
+    solveAndCheck("Problems/GRP/GRP001-3.p", Solver::OutStatus::UNKNOWN);
+}
+
+TEST_F(SolverTest, TPTP_Grp001_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP001-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp001_Minus_5) {
+    solveAndCheck("Problems/GRP/GRP001-5.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp002_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP002-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp002_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP002-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp002_Minus_3) {
+    solveAndCheck("Problems/GRP/GRP002-3.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp002_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP002-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp002_Minus_10) {
+    solveAndCheck("Problems/GRP/GRP002-10.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp003_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP003-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp003_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP003-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp004_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP004-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp004_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP004-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp005_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP005-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp006_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP006-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp007_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP007-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp008_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP008-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp009_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP009-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp010_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP010-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp010_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP010-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp011_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP011-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp012_Plus_5) {
+    solveAndCheck("Problems/GRP/GRP012+5.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Grp012_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP012-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp012_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP012-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp012_Minus_3) {
+    solveAndCheck("Problems/GRP/GRP012-3.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp012_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP012-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp013_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP013-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp014_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP014-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp015_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP015-1.p", Solver::OutStatus::UNKNOWN);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp016_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP016-1.p", Solver::OutStatus::UNKNOWN);
+}
+
+TEST_F(SolverTest, TPTP_Grp017_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP017-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp018_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP018-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp019_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP019-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp020_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP020-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp021_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP021-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp022_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP022-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp022_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP022-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp023_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP023-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Grp023_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP023-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp024_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP024-4.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp024_Minus_5) {
+    solveAndCheck("Problems/GRP/GRP024-5.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp025_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP025-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp025_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP025-2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp025_Minus_3) {
+    solveAndCheck("Problems/GRP/GRP025-3.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp025_Minus_4) {
+    solveAndCheck("Problems/GRP/GRP025-4.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp026_Minus_1) {
+    solveAndCheck("Problems/GRP/GRP026-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Grp026_Minus_2) {
+    solveAndCheck("Problems/GRP/GRP026-2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+//...
+
+// =========================================================================
+// GROUP 9: SYN TPTP BENCHMARKS
+// =========================================================================
+
+TEST_F(SolverTest, TPTP_Syn000_Plus_1) {
+    solveAndCheck("Problems/SYN/SYN000+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn000_Plus_2) {
+    solveAndCheck("Problems/SYN/SYN000+2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn000_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN000-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn000_Minus_2) {
+    solveAndCheck("Problems/SYN/SYN000-2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn001_Plus_1) {
+    solveAndCheck("Problems/SYN/SYN001+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn001_Minus_1_005) {
+    solveAndCheck("Problems/SYN/SYN001-1.005.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn002_Minus_1_007_008) {
+    solveAndCheck("Problems/SYN/SYN002-1.007.008.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn003_Minus_1_006) {
+    solveAndCheck("Problems/SYN/SYN003-1.006.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn004_Minus_1_007) {
+    solveAndCheck("Problems/SYN/SYN004-1.007.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn005_Minus_1_010) {
+    solveAndCheck("Problems/SYN/SYN005-1.010.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn006_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN006-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Syn007_Plus_1_014) {
+    solveAndCheck("Problems/SYN/SYN007+1.014.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn008_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN008-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn009_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN009-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn009_Minus_2) {
+    solveAndCheck("Problems/SYN/SYN009-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn009_Minus_3) {
+    solveAndCheck("Problems/SYN/SYN009-3.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn009_Minus_4) {
+    solveAndCheck("Problems/SYN/SYN009-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn010_Minus_1_005_005) {
+    solveAndCheck("Problems/SYN/SYN010-1.005.005.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn011_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN011-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Syn012_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN012-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn013_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN013-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn014_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN014-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn014_Minus_2) {
+    solveAndCheck("Problems/SYN/SYN014-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn015_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN015-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn015_Minus_2) {
+    solveAndCheck("Problems/SYN/SYN015-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn028_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN028-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn029_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN029-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn030_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN030-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn031_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN031-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn032_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN032-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn033_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN033-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn034_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN034-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn035_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN035-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn036_Plus_1) {
+    solveAndCheck("Problems/SYN/SYN036+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn036_Plus_2) {
+    solveAndCheck("Problems/SYN/SYN036+2.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn036_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN036-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn036_Minus_2) {
+    solveAndCheck("Problems/SYN/SYN036-2.p", Solver::OutStatus::SATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn036_Minus_3) {
+    solveAndCheck("Problems/SYN/SYN036-3.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn036_Minus_4) {
+    solveAndCheck("Problems/SYN/SYN036-4.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn037_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN037-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn037_Minus_2) {
+    solveAndCheck("Problems/SYN/SYN037-2.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, DISABLED_TPTP_Syn038_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN038-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn039_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN039-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+TEST_F(SolverTest, TPTP_Syn040_Plus_1) {
+    solveAndCheck("Problems/SYN/SYN040+1.p", Solver::OutStatus::THEOREM);
+}
+
+TEST_F(SolverTest, TPTP_Syn040_Minus_1) {
+    solveAndCheck("Problems/SYN/SYN040-1.p", Solver::OutStatus::UNSATISFIABLE);
+}
+
+//...
+
+// =========================================================================
+// GROUP 10: SET TPTP BENCHMARKS
+// =========================================================================

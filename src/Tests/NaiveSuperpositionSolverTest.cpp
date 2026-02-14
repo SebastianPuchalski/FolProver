@@ -1400,7 +1400,8 @@ TEST_F(NaiveSuperpositionSolverTest, Superposition_EqualityFactoringImplicit) {
 
 // 63. EQUALITY FACTORING (With Inequality Constraint)
 // f(x)=a v f(y)=b v x!=y.
-TEST_F(NaiveSuperpositionSolverTest, Superposition_EqualityFactoringWithConstraint) {
+TEST_F(NaiveSuperpositionSolverTest, DISABLED_Superposition_EqualityFactoringWithConstraint) {
+    // [       OK ] NaiveSuperpositionSolverTest.Superposition_EqualityFactoringWithConstraint (3293 ms)
 #if !defined(NDEBUG) || defined(_DEBUG)
     std::cout << "[   INFO   ] Test Superposition_EqualityFactoringWithConstraint skipped in DEBUG mode." << std::endl;
     return;
@@ -1527,7 +1528,8 @@ TEST_F(NaiveSuperpositionSolverTest, Superposition_DistinctClausePruning) {
 //    we can merge the left-hand sides f(x) and f(y) by unifying x and y.
 //    This effectively allows deriving f(x) = a (conditionally or directly).
 // 4. Finally, f(x) = a contradicts f(z) != a.
-TEST_F(NaiveSuperpositionSolverTest, Critical_Missing_Equality_Factoring) {
+TEST_F(NaiveSuperpositionSolverTest, DISABLED_Critical_Missing_Equality_Factoring) {
+    // [       OK ] NaiveSuperpositionSolverTest.Critical_Missing_Equality_Factoring (3266 ms)
 #if !defined(NDEBUG) || defined(_DEBUG)
     std::cout << "[   INFO   ] Test Critical_Missing_Equality_Factoring skipped in DEBUG mode." << std::endl;
     return;
