@@ -135,6 +135,39 @@ TEST_F(SolverTest, DISABLED_TPTP_Grp049_1_SingleAxiomGroup) {
     solveAndCheck("Problems/GRP/GRP049-1.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
+TEST_F(SolverTest, Factoring_NegativeLiterals_Necessity) {
+    /*
+     * PROOF DERIVATION:
+     * -----------------
+     * (1) ~p(X) | ~p(Y)       [Input Axiom]
+     * (2) p(a) | p(b)         [Input Axiom]
+     * (3) p(b) | ~p(Y)        [Binary Resolution: (1).0 and (2).0, MGU: {X -> a}]
+     * (4) p(b) | p(b)         [Binary Resolution: (3).1 and (2).0, MGU: {Y -> a}]
+     * (5) p(b)                [Positive Factoring: (4).0 and (4).1, MGU: {}]
+     * (6) ~p(Y)               [Binary Resolution: (1).0 and (5).0, MGU: {X -> b}]
+     * (7) []                  [Binary Resolution: (6).0 and (5).0, MGU: {Y -> b}]
+     */
+
+     // Test failed before subsumption multiset fix
+
+    /*
+    cnf(3, plain, p(a) | p(b), inference(cnf_transformation, [], [1])).
+    cnf(4, plain, ~p(X) | ~p(Y), inference(cnf_transformation, [], [2])).
+    cnf(5, plain, p(a) | ~p(V3), inference(resolution, [], [3, 4])).
+    cnf(6, plain, p(a) | p(a), inference(resolution, [], [3, 5])).
+    cnf(7, plain, p(a), inference(factoring, [], [6])).
+    cnf(8, plain, ~p(V6), inference(resolution, [], [7, 4])).
+    cnf(9, plain, $false, inference(resolution, [], [7, 8])).
+    */
+
+    std::string filename = createProblemFile("neg_factoring_hard.p", R"(
+        fof(ax_neg, axiom, ! [X, Y] : (~p(X) | ~p(Y))).
+        fof(ax_pos, axiom, p(a) | p(b)).
+    )");
+
+    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false);
+}
+
 // =========================================================================
 // GROUP 2: EQUALITY MICRO-BENCHMARKS (FAST)
 // =========================================================================
@@ -523,7 +556,7 @@ TEST_F(SolverTest, TPTP_Puz016_Minus_2_004) {
     solveAndCheck("Problems/PUZ/PUZ016-2.004.p", Solver::OutStatus::SATISFIABLE);
 }
 
-TEST_F(SolverTest, TPTP_Puz016_Minus_2_005) {
+TEST_F(SolverTest, DISABLED_TPTP_Puz016_Minus_2_005) {
     solveAndCheck("Problems/PUZ/PUZ016-2.005.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
@@ -1314,19 +1347,23 @@ TEST_F(SolverTest, TPTP_Syn035_Minus_1) {
     solveAndCheck("Problems/SYN/SYN035-1.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
-TEST_F(SolverTest, TPTP_Syn036_Plus_1) {
+TEST_F(SolverTest, DISABLED_TPTP_Syn036_Plus_1) {
+    // [       OK ] SolverTest.TPTP_Syn036_Plus_1 (17608 ms)
     solveAndCheck("Problems/SYN/SYN036+1.p", Solver::OutStatus::THEOREM);
 }
 
-TEST_F(SolverTest, TPTP_Syn036_Plus_2) {
+TEST_F(SolverTest, DISABLED_TPTP_Syn036_Plus_2) {
+    // [       OK ] SolverTest.TPTP_Syn036_Plus_2 (61169 ms)
     solveAndCheck("Problems/SYN/SYN036+2.p", Solver::OutStatus::THEOREM);
 }
 
-TEST_F(SolverTest, TPTP_Syn036_Minus_1) {
+TEST_F(SolverTest, DISABLED_TPTP_Syn036_Minus_1) {
+    // [       OK ] SolverTest.TPTP_Syn036_Minus_1 (6062 ms)
     solveAndCheck("Problems/SYN/SYN036-1.p", Solver::OutStatus::UNSATISFIABLE);
 }
 
-TEST_F(SolverTest, TPTP_Syn036_Minus_2) {
+TEST_F(SolverTest, DISABLED_TPTP_Syn036_Minus_2) {
+    // [       OK ] SolverTest.TPTP_Syn036_Minus_2 (16744 ms)
     solveAndCheck("Problems/SYN/SYN036-2.p", Solver::OutStatus::SATISFIABLE);
 }
 

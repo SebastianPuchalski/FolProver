@@ -940,15 +940,20 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyClauseSubsumption(
         return subsumed;
     }
 
-    std::function<bool(size_t, const Substitution&)> checkRecursively =
-        [&](size_t subsumingClauseIndex, const Substitution& currentSubstitution) -> bool {
+    std::function<bool(size_t, const Substitution&, const std::vector<bool>&)> checkRecursively =
+        [&](size_t subsumingClauseIndex, const Substitution& currentSubstitution,
+            const std::vector<bool>& mask) -> bool {
         if (subsumingClauseIndex == subsuming->literals.size()) return true;
         auto patternLiteral = subsuming->literals[subsumingClauseIndex];
-        for (const auto& targetLiteral : subsumed->literals) {
+        for (size_t i = 0; i < subsumed->literals.size(); ++i) {
+            if (!mask[i]) continue;
+            const auto& targetLiteral = subsumed->literals[i];
+            auto nextMask = mask;
+            nextMask[i] = false;
             auto substitutions = Unification::matchCommutative(
                 patternLiteral, targetLiteral, currentSubstitution);
             for (const auto& nextSubstitution : substitutions) {
-                if (checkRecursively(subsumingClauseIndex + 1, nextSubstitution)) {
+                if (checkRecursively(subsumingClauseIndex + 1, nextSubstitution, nextMask)) {
                     return true;
                 }
             }
@@ -956,7 +961,8 @@ SuperpositionSolver::ClausePtr SuperpositionSolver::applyClauseSubsumption(
         return false;
     };
 
-    if (checkRecursively(0, Substitution{})) return nullptr;
+    std::vector<bool> mask(subsumed->literals.size(), true);
+    if (checkRecursively(0, Substitution{}, mask)) return nullptr;
     return subsumed;
 }
 
