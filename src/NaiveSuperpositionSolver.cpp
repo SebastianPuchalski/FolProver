@@ -99,20 +99,19 @@ FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNode
             applyBinaryResolution(procClause, givenClause, inferredClauses);
             applySuperposition(procClause, givenClause, inferredClauses);
         }
+        applySuperposition(givenClause, givenClause, inferredClauses);
 
         for (auto& inferredClause : inferredClauses) {
-            // temp. begin
             bool isTautology = false;
             for (const auto& literal : inferredClause->literals) {
                 if (literal->exprType == Expression::Type::EQUALITY) {
                     auto equality = std::static_pointer_cast<EqualityFormula>(literal);
-                    if (ExpressionUtils::areAlphaEquivalent(equality->left, equality->right)) {
+                    if (lpo.isEqual(equality->left, equality->right)) {
                         isTautology = true;
                         break;
                     }
                 }
             }
-            // temp. end
             std::vector<FormulaPtr> workingLiterals = inferredClause->literals;
             bool changed = false;
             if(!isTautology) isTautology = handleDistinctObjects(workingLiterals, &changed);
@@ -148,13 +147,13 @@ void NaiveSuperpositionSolver::applyBinaryResolution(
 
     auto resolve = [&](const ClausePtr& lClause, const std::vector<bool>& lSelection,
                        const ClausePtr& rClause, const std::vector<bool>& rSelection) {
-        auto lEligibleMask = areEligibleForParamodulation(lClause->literals, lSelection, true);
+        auto lEligibleMask = areEligibleForParamodulation(lClause->literals, lSelection, false);
         auto rEligibleMask = areEligibleForResolution(rClause->literals, rSelection);
 
         for (size_t i = 0; i < lClause->literals.size(); ++i) {
             if (!lEligibleMask[i]) continue;
             auto lLiteral = lClause->literals[i];
-            if (lLiteral->exprType == Expression::Type::NEGATION) continue;
+            if (lLiteral->exprType != Expression::Type::PREDICATE) continue;
 
             for (size_t j = 0; j < rClause->literals.size(); ++j) {
                 if (!rEligibleMask[j]) continue;
@@ -232,7 +231,6 @@ void NaiveSuperpositionSolver::applyFactoring(
 void NaiveSuperpositionSolver::applySuperposition(
     const ClausePtr& clause1, const ClausePtr& clause2,
     std::vector<ClausePtr>& inferredClauses) const {
-    if (clause1 == clause2) return;
 
     std::function<void(ExpressionPtr, std::vector<size_t>&,
         const ClausePtr&, const ClausePtr&, size_t, size_t,
@@ -290,7 +288,7 @@ void NaiveSuperpositionSolver::applySuperposition(
         const ClausePtr& fromClause, const std::vector<bool>& fromSelMask,
         const ClausePtr& intoClause, const std::vector<bool>& intoSelMask) {
 
-        auto fromEligibleMask = areEligibleForParamodulation(fromClause->literals, fromSelMask, true);
+        auto fromEligibleMask = areEligibleForParamodulation(fromClause->literals, fromSelMask, false);
         auto intoEligibleMask = areEligibleForResolution(intoClause->literals, intoSelMask);
 
         for (size_t i = 0; i < fromClause->literals.size(); ++i) {
@@ -343,10 +341,36 @@ void NaiveSuperpositionSolver::applySuperposition(
         }
     };
 
-    auto selectionMask1 = selectLiterals(clause1->literals);
-    auto selectionMask2 = selectLiterals(clause2->literals);
-    processClausePair(clause1, selectionMask1, clause2, selectionMask2);
-    processClausePair(clause2, selectionMask2, clause1, selectionMask1);
+    if (clause1 != clause2) {
+        auto selectionMask1 = selectLiterals(clause1->literals);
+        auto selectionMask2 = selectLiterals(clause2->literals);
+        processClausePair(clause1, selectionMask1, clause2, selectionMask2);
+        processClausePair(clause2, selectionMask2, clause1, selectionMask1);
+    }
+    else {
+        std::function<void(ExpressionPtr)> renameVariables = [&](const ExpressionPtr& expr) {
+            if (expr->exprType == Expression::Type::VARIABLE) {
+                auto variable = std::static_pointer_cast<VariableTerm>(expr);
+                variable->symbol += "_c";
+            }
+            auto childCount = expr->getChildCount();
+            for (size_t i = 0; i < childCount; ++i) {
+                renameVariables(expr->getChild(i));
+            }
+        };
+
+        std::vector<FormulaPtr> literalsRenamed;
+        literalsRenamed.reserve(clause1->literals.size());
+        for (const auto& literal : clause1->literals) {
+            auto literalClone = std::static_pointer_cast<Formula>(literal->clone());
+            renameVariables(literalClone);
+            literalsRenamed.push_back(literalClone);
+        }
+        auto clauseCopy = std::make_shared<Clause>("renaming", clause1);
+        clauseCopy->literals = std::move(literalsRenamed);
+        auto selectionMask = selectLiterals(clause1->literals);
+        processClausePair(clause1, selectionMask, clauseCopy, selectionMask);
+    }
 }
 
 void NaiveSuperpositionSolver::applyEqualityResolution(const ClausePtr& clause,

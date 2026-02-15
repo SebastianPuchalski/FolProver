@@ -45,7 +45,7 @@ private:
     void simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause,
         Clauses& reducedClauses, ClauseSelector& unprocessedClauses) const;
     void generateInferences(const ClausePtr& clause, const ClauseIndex& index, Clauses& inferredClauses) const;
-    void standardizeVariables(ClausePtr& clause);
+    void makeClauseVariablesUnique(ClausePtr& clause);
 
     ClausePtr applyBooleanSimplification(const ClausePtr& clause) const;
     ClausePtr applyDistinctObjectSimplification(const ClausePtr& clause) const;

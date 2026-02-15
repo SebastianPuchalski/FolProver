@@ -109,6 +109,8 @@ ProofNodePtr NaiveResolutionSolver::getProof() const {
 
 void NaiveResolutionSolver::resolve(const ClausePtr& clause1, const ClausePtr& clause2,
     std::vector<ClausePtr>& resolvents) const {
+    if (clause1 == clause2) return;
+
     for (size_t i1 = 0; i1 < clause1->literals.size(); ++i1) {
         auto literal1 = clause1->literals[i1];
         for (size_t i2 = 0; i2 < clause2->literals.size(); ++i2) {

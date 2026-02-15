@@ -56,7 +56,7 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
         processedClauses.addClause(givenClause);
 
         for (auto clause : derivedClauses) {
-            standardizeVariables(clause);
+            makeClauseVariablesUnique(clause);
             clause = simplifyCheapForward(clause, processedClauses);
             clause = applyDistinctObjectSimplification(clause);
             if (!clause) continue;
@@ -131,7 +131,7 @@ bool SuperpositionSolver::loadInitialClauses(const std::vector<ProofNodePtr>& cl
             return true;
         }
 
-        standardizeVariables(inputClause);
+        makeClauseVariablesUnique(inputClause);
         unprocessedClauses.addClause(inputClause);
     }
     return false;
@@ -292,7 +292,7 @@ void SuperpositionSolver::generateInferences(
     applySuperposition(clause, clause, inferredClauses);
 }
 
-void SuperpositionSolver::standardizeVariables(ClausePtr& clause) {
+void SuperpositionSolver::makeClauseVariablesUnique(ClausePtr& clause) {
     // Violates immutability contract. Safe because variable renaming
     // (alpha-conversion) does not change the clause's logical identity.
     if (clause->literals.empty()) return;
