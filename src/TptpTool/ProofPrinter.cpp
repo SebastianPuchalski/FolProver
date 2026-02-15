@@ -230,14 +230,14 @@ void ProofPrinter::nodeToHtml(const ProofNodePtr& node, std::string role) {
     outputBuffer << "  <div class='col-source'>";
 
     if (auto tptpNode = std::dynamic_pointer_cast<TptpProofNode>(node)) {
-        outputBuffer << "<strong>" << escapeHtml(tptpNode->getName()) << "</strong>";
+        outputBuffer << "<span class='src-name'>" << escapeHtml(tptpNode->getName()) << "</span>";
         outputBuffer << "&nbsp;&nbsp;|&nbsp;&nbsp;";
         std::string path = tptpNode->getSourceFile();
         std::replace(path.begin(), path.end(), '\\', '/');
         outputBuffer << "<span class='src-file'>" << escapeHtml(path) << "</span>";
     }
     else if (auto stepNode = std::dynamic_pointer_cast<ProofStep>(node)) {
-        outputBuffer << "<strong>" << stepNode->getRule() << "</strong>";
+        outputBuffer << "<span class='src-rule'>" << stepNode->getRule() << "</span>";
         const auto& parents = stepNode->getParents();
         if (!parents.empty()) {
             outputBuffer << " <span class='src-parents'>[ ";
@@ -275,7 +275,7 @@ std::string ProofPrinter::getHtmlPrefix() const {
             --bg-hover: #f8f9fa;
             --bg-highlight: #fff3cd;
             --clr-text: #212529;
-            --clr-meta: #6c757d;
+            --clr-meta: #4c555d;
             --clr-link: #0d6efd;
             --font-main: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -364,7 +364,9 @@ std::string ProofPrinter::getHtmlPrefix() const {
         .col-id a:hover { text-decoration: underline; color: #000; }
         .col-source a:hover { text-decoration: underline; }
 
-        .src-file { color: #495057; }
+        .src-file { color: #806060; }
+        .src-name { color: #402020; font-weight: normal; }
+        .src-rule { color: #003366; font-weight: normal; }
         .src-parents { color: #888; margin-left: 5px; }
 
         /* --- ROLE STYLES --- */
@@ -390,7 +392,7 @@ std::string ProofPrinter::getHtmlPrefix() const {
         /* Group 3: Steps & Technical (Subtle Grey) */
         .role-plain, .role-unknown, 
         .role-type, .role-fi_domain, .role-fi_functors, .role-fi_predicates { 
-            color: #adb5bd; 
+            color: #8d8d8d;
             font-weight: 500; 
         }
         

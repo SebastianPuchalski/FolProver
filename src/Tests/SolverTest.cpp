@@ -43,22 +43,37 @@ protected:
         return filename;
     }
 
+    void dumpProofIfMissing(const std::string& path, const Solver& solver) {
+        fs::path baseDir = "proof-dump";
+        std::pair<std::string, std::string> outputs[] = {
+            {".txt", solver.getTextProof()},
+            {".html", solver.getHtmlProof()}
+        };
+
+        for (const auto& [ext, content] : outputs) {
+            if (content.empty()) continue;
+            fs::path target = baseDir / (path + ext);
+            if (!fs::exists(target)) {
+                fs::create_directories(target.parent_path());
+                std::ofstream out(target);
+                if (out) out << content;
+            }
+        }
+    }
+
     void solveAndCheck(const std::string& path,
         Solver::OutStatus expectedStatus,
-        bool expectProof = false,
+        bool expectProof = true,
         bool useTptpDirPrefix = true,
         int timeLimit = -1,
         int memoryLimit = -1) {
 
-        std::string fullPathString = path;
-
         if (useTptpDirPrefix) {
             fs::path p = fs::path(tptpDir) / path;
-            fullPathString = p.string();
-            if (!fs::exists(p)) FAIL() << "TPTP file missing: " << fullPathString;
+            if (!fs::exists(p)) FAIL() << "TPTP file missing: " << p.string();
         }
 
-        Solver solver(fullPathString, tptpDir, expectProof);
+        Solver solver(path, tptpDir, true);
         Solver::OutStatus result = solver.solve(timeLimit, memoryLimit);
 
         auto statusToString = [](Solver::OutStatus status) -> std::string {
@@ -75,15 +90,21 @@ protected:
             case Solver::OutStatus::UNKNOWN:             return "UNKNOWN";
             default:                                     return "UNKNOWN";
             }
-            };
+        };
 
         EXPECT_EQ(result, expectedStatus)
             << "File: " << path
             << "\nExpected: " << statusToString(expectedStatus)
             << "\nActual:   " << statusToString(result);
 
-        if (expectProof && result == Solver::OutStatus::THEOREM) {
+        if (expectProof &&
+            (result == Solver::OutStatus::THEOREM || result == Solver::OutStatus::UNSATISFIABLE)) {
             EXPECT_FALSE(solver.getTstpProof().empty()) << "Proof output is empty.";
+        }
+
+        if (result == expectedStatus &&
+            (result == Solver::OutStatus::THEOREM || result == Solver::OutStatus::UNSATISFIABLE)) {
+            dumpProofIfMissing(path, solver);
         }
     }
 };
@@ -165,7 +186,7 @@ TEST_F(SolverTest, Factoring_NegativeLiterals_Necessity) {
         fof(ax_pos, axiom, p(a) | p(b)).
     )");
 
-    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, false, false);
+    solveAndCheck(filename, Solver::OutStatus::UNSATISFIABLE, true, false);
 }
 
 // =========================================================================

@@ -3,6 +3,7 @@ Tests/packages
 Tests/Tests
 Tests/x64
 Tests/Tests.vcxproj.user
+Tests/proof-dump
 
 TptpTool/.vs
 TptpTool/TptpTool
