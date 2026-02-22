@@ -369,95 +369,112 @@ bool ClauseSelector::removeClause(const ClausePtr& clause) {
     return clauses.erase(clause);
 }
 
-float ClauseSelector::fifoWeightEvaluator(const ClausePtr&, uint64_t id, const Lpo&) {
-    return static_cast<float>(id);
+ClauseSelector::WeightEvaluator ClauseSelector::createFifoWeightEvaluator() {
+    return [](const ClausePtr&, uint64_t id, const Lpo&) -> float {
+        return static_cast<float>(id);
+    };
 }
 
-float ClauseSelector::clauseWeightEvaluator(const ClausePtr& clause, uint64_t, const Lpo&) {
-    constexpr float PREDICATE_WEIGHT = 2.0f;
-    constexpr float POS_LITERAL_COEF = 1.0f;
+ClauseSelector::WeightEvaluator ClauseSelector::createClauseWeightEvaluator(const std::string& ignoredPredicate) {
+    return [ignoredPredicate](const ClausePtr& clause, uint64_t, const Lpo&) -> float {
+        constexpr float PREDICATE_WEIGHT = 2.0f;
+        constexpr float POS_LITERAL_COEF = 1.0f;
 
-    float totalWeight = 0.0f;
-    for (const auto& literal : clause->literals) {
-        bool isPositive;
-        ExpressionPtr atom;
-        if (literal->exprType == Expression::Type::NEGATION) {
-            isPositive = false;
-            atom = std::static_pointer_cast<NegationFormula>(literal)->child;
+        float totalWeight = 0.0f;
+        for (const auto& literal : clause->literals) {
+            bool isPositive;
+            ExpressionPtr atom;
+            if (literal->exprType == Expression::Type::NEGATION) {
+                isPositive = false;
+                atom = std::static_pointer_cast<NegationFormula>(literal)->child;
+            }
+            else {
+                isPositive = true;
+                atom = literal;
+            }
+
+            if (!ignoredPredicate.empty() && atom->exprType == Expression::Type::PREDICATE) {
+                auto predicate = std::static_pointer_cast<PredicateFormula>(atom);
+                if (predicate->symbol == ignoredPredicate) continue;
+            }
+
+            float literalWeight = PREDICATE_WEIGHT;
+            size_t childCount = atom->getChildCount();
+            for (size_t i = 0; i < childCount; ++i) {
+                literalWeight += getExpressionWeight(atom->getChild(i));
+            }
+            if (isPositive) literalWeight *= POS_LITERAL_COEF;
+            totalWeight += literalWeight;
         }
-        else {
-            isPositive = true;
-            atom = literal;
-        }
-        float literalWeight = PREDICATE_WEIGHT;
-        size_t childCount = atom->getChildCount();
-        for (size_t i = 0; i < childCount; ++i) {
-            literalWeight += getExpressionWeight(atom->getChild(i));
-        }
-        if (isPositive) literalWeight *= POS_LITERAL_COEF;
-        totalWeight += literalWeight;
-    }
-    return totalWeight;
+        return totalWeight;
+    };
 }
 
-float ClauseSelector::refinedWeightEvaluator(const ClausePtr& clause, uint64_t, const Lpo& lpo) {
-    constexpr float PREDICATE_WEIGHT = 2.0f;
-    constexpr float MAX_TERM_COEF = 1.5f;
-    constexpr float MAX_LITERAL_COEF = 1.5f;
+ClauseSelector::WeightEvaluator ClauseSelector::createRefinedWeightEvaluator(const std::string& ignoredPredicate) {
+    return [ignoredPredicate](const ClausePtr& clause, uint64_t, const Lpo& lpo) -> float {
+        constexpr float PREDICATE_WEIGHT = 2.0f;
+        constexpr float MAX_TERM_COEF = 1.5f;
+        constexpr float MAX_LITERAL_COEF = 1.5f;
 
-    const auto& literals = clause->literals;
-    size_t literalCount = literals.size();
+        const auto& literals = clause->literals;
+        size_t literalCount = literals.size();
 
-    // Alternatively, eligible masks can be used
-    Mask isLiteralMaximal(literalCount, true);
-    for (size_t i = 0; i < literalCount; ++i) {
-        for (size_t j = 0; j < literalCount; ++j) {
-            if (i != j && isLiteralMaximal[j]) {
-                if (lpo.isGreater(literals[j], literals[i])) {
-                    isLiteralMaximal[i] = false;
-                    break;
-                }
-            }
-        }
-    }
-
-    float totalClauseWeight = 0.0f;
-    for (size_t i = 0; i < literalCount; ++i) {
-        auto literal = literals[i];
-        ExpressionPtr atom;
-        if (literal->exprType == Expression::Type::NEGATION) {
-            atom = std::static_pointer_cast<NegationFormula>(literal)->child;
-        }
-        else atom = literal;
-
-        float currentLiteralWeight = PREDICATE_WEIGHT;
-        size_t argumentCount = atom->getChildCount();
-
-        if (!isLiteralMaximal[i]) {
-            for (size_t j = 0; j < argumentCount; ++j) {
-                currentLiteralWeight += getExpressionWeight(atom->getChild(j));
-            }
-        }
-        else {
-            Mask isArgumentMaximal(argumentCount, true);
-            for (size_t j = 0; j < argumentCount; ++j) {
-                for (size_t k = 0; k < argumentCount; ++k) {
-                    if (j != k && isArgumentMaximal[k]) {
-                        if (lpo.isGreater(atom->getChild(k), atom->getChild(j))) {
-                            isArgumentMaximal[j] = false;
-                            break;
-                        }
+        // Alternatively, eligible masks can be used
+        Mask isLiteralMaximal(literalCount, true);
+        for (size_t i = 0; i < literalCount; ++i) {
+            for (size_t j = 0; j < literalCount; ++j) {
+                if (i != j && isLiteralMaximal[j]) {
+                    if (lpo.isGreater(literals[j], literals[i])) {
+                        isLiteralMaximal[i] = false;
+                        break;
                     }
                 }
-                auto argumentWeight = getExpressionWeight(atom->getChild(j));
-                if (isArgumentMaximal[j]) argumentWeight *= MAX_TERM_COEF;
-                currentLiteralWeight += argumentWeight;
             }
-            currentLiteralWeight *= MAX_LITERAL_COEF;
         }
-        totalClauseWeight += currentLiteralWeight;
-    }
-    return totalClauseWeight;
+
+        float totalClauseWeight = 0.0f;
+        for (size_t i = 0; i < literalCount; ++i) {
+            auto literal = literals[i];
+            ExpressionPtr atom;
+            if (literal->exprType == Expression::Type::NEGATION) {
+                atom = std::static_pointer_cast<NegationFormula>(literal)->child;
+            }
+            else atom = literal;
+
+            if (!ignoredPredicate.empty() && atom->exprType == Expression::Type::PREDICATE) {
+                auto predicate = std::static_pointer_cast<PredicateFormula>(atom);
+                if (predicate->symbol == ignoredPredicate) continue;
+            }
+
+            float currentLiteralWeight = PREDICATE_WEIGHT;
+            size_t argumentCount = atom->getChildCount();
+
+            if (!isLiteralMaximal[i]) {
+                for (size_t j = 0; j < argumentCount; ++j) {
+                    currentLiteralWeight += getExpressionWeight(atom->getChild(j));
+                }
+            }
+            else {
+                Mask isArgumentMaximal(argumentCount, true);
+                for (size_t j = 0; j < argumentCount; ++j) {
+                    for (size_t k = 0; k < argumentCount; ++k) {
+                        if (j != k && isArgumentMaximal[k]) {
+                            if (lpo.isGreater(atom->getChild(k), atom->getChild(j))) {
+                                isArgumentMaximal[j] = false;
+                                break;
+                            }
+                        }
+                    }
+                    auto argumentWeight = getExpressionWeight(atom->getChild(j));
+                    if (isArgumentMaximal[j]) argumentWeight *= MAX_TERM_COEF;
+                    currentLiteralWeight += argumentWeight;
+                }
+                currentLiteralWeight *= MAX_LITERAL_COEF;
+            }
+            totalClauseWeight += currentLiteralWeight;
+        }
+        return totalClauseWeight;
+    };
 }
 
 //------------------------------------------------------------------------------

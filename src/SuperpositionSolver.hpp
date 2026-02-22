@@ -15,7 +15,7 @@ public:
     void setTimeLimit(int seconds) override;
     void setMemoryLimit(int megabytes) override;
 
-    void setAnswerPredicateName(const std::string& name) override;
+    void setAnswerPredicateSymbol(const std::string& name) override;
 
     Result solve(const std::vector<ProofNodePtr>& clauses) override;
     ProofNodePtr getProof() const override;
@@ -36,7 +36,7 @@ private:
     double timeLimitSeconds = 0.0;
     int memoryLimitMegabytes = 0;
 
-    std::string answerPredicateName;
+    std::string answerPredicateSymbol;
     ClausePtr proofRoot;
 
     std::pair<double, size_t> initResourceLimitState() const;

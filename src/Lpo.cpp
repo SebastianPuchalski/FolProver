@@ -2,6 +2,10 @@
 
 #include <cassert>
 
+void Lpo::setLowerPrecedencePredicate(std::string symbol) {
+    lowerPrecedencePredicateSymbol = std::move(symbol);
+}
+
 Lpo::Result Lpo::compare(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const {
     bool isLhsNegation = (lhs->exprType == Expression::Type::NEGATION);
     bool isRhsNegation = (rhs->exprType == Expression::Type::NEGATION);
@@ -114,9 +118,16 @@ Lpo::Result Lpo::compareRec(const ExpressionPtr& lhs, const ExpressionPtr& rhs) 
 }
 
 Lpo::Result Lpo::compareHeads(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const {
-    auto getTypePrecedence = [](const ExpressionPtr& expr) -> int {
+    auto getTypePrecedence = [this](const ExpressionPtr& expr) -> int {
         switch (expr->exprType) {
-        case Expression::Type::PREDICATE: return 4;
+        case Expression::Type::PREDICATE: {
+            auto predicate = std::static_pointer_cast<PredicateFormula>(expr);
+            if (!lowerPrecedencePredicateSymbol.empty() &&
+                predicate->symbol == lowerPrecedencePredicateSymbol) {
+                return 0;
+            }
+            return 4;
+        }
         case Expression::Type::EQUALITY: return 3;
         case Expression::Type::FUNCTION:
             if (std::static_pointer_cast<FunctionTerm>(expr)->distinct) return 1;

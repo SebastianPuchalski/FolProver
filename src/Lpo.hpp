@@ -4,6 +4,8 @@
 
 class Lpo {
 public:
+    void setLowerPrecedencePredicate(std::string symbol);
+
     enum class Result { GREATER, LESS, EQUAL, INCOMPARABLE };
     Result compare(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const;
 
@@ -15,6 +17,8 @@ public:
     bool isIncomparable(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const;
 
 private:
+    std::string lowerPrecedencePredicateSymbol;
+
     Result compareRec(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const;
     Result compareHeads(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const;
     Result compareEqualities(const ExpressionPtr& lhs, const ExpressionPtr& rhs) const;

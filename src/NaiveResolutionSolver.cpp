@@ -31,7 +31,7 @@ void NaiveResolutionSolver::setMemoryLimit(int megabytes) {
     memoryLimitMegabytes = megabytes;
 }
 
-void NaiveResolutionSolver::setAnswerPredicateName(const std::string&) {
+void NaiveResolutionSolver::setAnswerPredicateSymbol(const std::string&) {
     throw std::runtime_error("Answer extraction is not supported by this solver.");
 }
 

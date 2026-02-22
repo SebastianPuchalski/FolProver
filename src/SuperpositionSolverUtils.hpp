@@ -111,9 +111,9 @@ public:
     ClausePtr selectClause();
     bool removeClause(const ClausePtr& clause);
 
-    static float fifoWeightEvaluator(const ClausePtr&, uint64_t id, const Lpo&);
-    static float clauseWeightEvaluator(const ClausePtr& clause, uint64_t, const Lpo&);
-    static float refinedWeightEvaluator(const ClausePtr& clause, uint64_t, const Lpo& lpo);
+    static WeightEvaluator createFifoWeightEvaluator();
+    static WeightEvaluator createClauseWeightEvaluator(const std::string& ignoredPredicate = "");
+    static WeightEvaluator createRefinedWeightEvaluator(const std::string& ignoredPredicate = "");
 
 private:
     using QueueElement = std::tuple<float, uint64_t, ClausePtr>;

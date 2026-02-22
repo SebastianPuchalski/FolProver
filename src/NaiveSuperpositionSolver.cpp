@@ -34,7 +34,7 @@ void NaiveSuperpositionSolver::setMemoryLimit(int megabytes) {
     memoryLimitMegabytes = megabytes;
 }
 
-void NaiveSuperpositionSolver::setAnswerPredicateName(const std::string&) {
+void NaiveSuperpositionSolver::setAnswerPredicateSymbol(const std::string&) {
     throw std::runtime_error("Answer extraction is not supported by this solver.");
 }
 

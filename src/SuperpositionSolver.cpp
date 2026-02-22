@@ -25,8 +25,9 @@ void SuperpositionSolver::setMemoryLimit(int megabytes) {
     memoryLimitMegabytes = megabytes;
 }
 
-void SuperpositionSolver::setAnswerPredicateName(const std::string& name) {
-    answerPredicateName = name;
+void SuperpositionSolver::setAnswerPredicateSymbol(const std::string& symbol) {
+    answerPredicateSymbol = symbol;
+    lpo.setLowerPrecedencePredicate(answerPredicateSymbol);
 }
 
 FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>& clauses) {
@@ -105,9 +106,9 @@ FolSatSolver::Result SuperpositionSolver::checkResourceLimits(
 
 SuperpositionSolver::ClauseSelector SuperpositionSolver::createClauseSelector() const {
     std::vector<ClauseSelector::SelectionStrategy> selectionStrategies = {
-        { 3, ClauseSelector::refinedWeightEvaluator },
-        { 1, ClauseSelector::clauseWeightEvaluator },
-        { 1, ClauseSelector::fifoWeightEvaluator }
+        { 1, ClauseSelector::createFifoWeightEvaluator() },
+        { 1, ClauseSelector::createClauseWeightEvaluator(answerPredicateSymbol) },
+        { 3, ClauseSelector::createRefinedWeightEvaluator(answerPredicateSymbol) }
     };
     return ClauseSelector(selectionStrategies, lpo);
 }
@@ -294,12 +295,12 @@ bool SuperpositionSolver::satisfiesStopCondition(const ClausePtr& clause) {
         return true;
     }
 
-    if (!answerPredicateName.empty()) {
+    if (!answerPredicateSymbol.empty()) {
         if (clause->literals.size() == 1) {
             auto literal = clause->literals.front();
             if (literal->exprType == Expression::Type::PREDICATE) {
                 auto predicate = std::static_pointer_cast<PredicateFormula>(literal);
-                if (predicate->symbol == answerPredicateName) {
+                if (predicate->symbol == answerPredicateSymbol) {
                     proofRoot = clause;
                     return true;
                 }

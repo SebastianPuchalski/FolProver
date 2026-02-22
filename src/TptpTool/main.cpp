@@ -19,6 +19,7 @@ struct Options {
     int memoryLimit = -1;
     bool printProof = false;
     bool printHelp = false;
+    std::string ansPredicate;
 };
 
 Options parseArguments(int argc, char* argv[]) {
@@ -57,6 +58,14 @@ Options parseArguments(int argc, char* argv[]) {
             }
             else {
                 throw std::runtime_error("Missing argument for memory limit option");
+            }
+        }
+        else if (arg == "-a" || arg == "--answer-predicate") {
+            if (i + 1 < argc) {
+                options.ansPredicate = argv[++i];
+            }
+            else {
+                throw std::runtime_error("Missing argument for answer predicate option");
             }
         }
         else if (arg[0] == '-') {
@@ -163,7 +172,9 @@ int main(int argc, char* argv[]) {
         }
 
         Solver solver(options.filePath, tptpDir, options.printProof);
-        Solver::OutStatus status = solver.solve(options.timeLimitSeconds, options.memoryLimit);
+        Solver::OutStatus status = solver.solve(options.timeLimitSeconds,
+                                                options.memoryLimit,
+                                                options.ansPredicate);
         printStatus(status, options.filePath);
         if (options.printProof) {
             auto textProof = solver.getTextProof();

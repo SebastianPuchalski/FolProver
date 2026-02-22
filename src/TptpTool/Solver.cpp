@@ -32,7 +32,8 @@ std::string Solver::getHtmlProof() const {
     return htmlProof;
 }
 
-Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes) {
+Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes,
+    const std::string& answerPredicate) {
     std::vector<Loader::AnnotatedFormula> annotatedFormulas;
     Loader loader(tptpDir);
     try {
@@ -49,6 +50,7 @@ Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes) 
     SuperpositionSolver cnfSolver;
     if (timeLimitSeconds > 0) cnfSolver.setTimeLimit(timeLimitSeconds);
     if (memoryLimitMegabytes > 0) cnfSolver.setMemoryLimit(memoryLimitMegabytes);
+    if (!answerPredicate.empty()) cnfSolver.setAnswerPredicateSymbol(answerPredicate);
     FolSatSolver::Result result = cnfSolver.solve(clauseNodes);
 
     Solver::OutStatus outStatus;
