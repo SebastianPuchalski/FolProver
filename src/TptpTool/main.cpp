@@ -19,6 +19,7 @@ struct Options {
     int memoryLimit = -1;
     bool printProof = false;
     bool printHelp = false;
+    std::string solverName;
     std::string ansPredicate;
 };
 
@@ -60,6 +61,14 @@ Options parseArguments(int argc, char* argv[]) {
                 throw std::runtime_error("Missing argument for memory limit option");
             }
         }
+        else if (arg == "-s" || arg == "--solver") {
+            if (i + 1 < argc) {
+                options.solverName = argv[++i];
+            }
+            else {
+                throw std::runtime_error("Missing argument for solver option");
+            }
+        }
         else if (arg == "-a" || arg == "--answer-predicate") {
             if (i + 1 < argc) {
                 options.ansPredicate = argv[++i];
@@ -98,10 +107,12 @@ std::string getUsageString(std::string programName) {
     std::stringstream ss;
     ss << "Usage: " << programName << " [options] <input_file>\n"
         << "Options:\n"
-        << "  -t, --time-limit <sec>   CPU time limit in seconds\n"
-        << "  -m, --memory-limit <MB>  Memory limit in megabytes\n"
-        << "  -p, --proof              Output proof if found\n"
-        << "  -h, --help               Show this help message\n";
+        << "  -t, --time-limit <sec>           CPU time limit in seconds\n"
+        << "  -m, --memory-limit <MB>          Memory limit in megabytes\n"
+        << "  -p, --proof                      Output proof if found\n"
+        << "  -s, --solver <solver_name>       Choose solver\n"
+        << "  -a, --answer-predicate <symbol>  Set answer (mode) predicate\n"
+        << "  -h, --help                       Show this help message\n";
     return ss.str();
 }
 
@@ -172,9 +183,8 @@ int main(int argc, char* argv[]) {
         }
 
         Solver solver(options.filePath, tptpDir, options.printProof);
-        Solver::OutStatus status = solver.solve(options.timeLimitSeconds,
-                                                options.memoryLimit,
-                                                options.ansPredicate);
+        Solver::OutStatus status = solver.solve(options.timeLimitSeconds, options.memoryLimit,
+                                                options.solverName, options.ansPredicate);
         printStatus(status, options.filePath);
         if (options.printProof) {
             auto textProof = solver.getTextProof();

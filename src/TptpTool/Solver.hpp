@@ -36,8 +36,8 @@ public:
     std::string getTextProof() const;
     std::string getTstpProof() const;
     std::string getHtmlProof() const;
-    OutStatus solve(int timeLimitSeconds = -1,
-                    int memoryLimitMegabytes = -1,
+    OutStatus solve(int timeLimitSeconds = -1, int memoryLimitMegabytes = -1,
+                    const std::string& solverName = "",
                     const std::string& answerPredicate = "");
 
 private:

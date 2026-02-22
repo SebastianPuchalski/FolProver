@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 namespace TptpTool {
@@ -33,7 +34,8 @@ std::string Solver::getHtmlProof() const {
 }
 
 Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes,
-    const std::string& answerPredicate) {
+                                const std::string& solverName,
+                                const std::string& answerPredicate) {
     std::vector<Loader::AnnotatedFormula> annotatedFormulas;
     Loader loader(tptpDir);
     try {
@@ -47,11 +49,28 @@ Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes,
     auto problemDef = createProblemDef(annotatedFormulas);
     auto clauseNodes = convertToCnf(problemDef.formulaNodes);
 
-    SuperpositionSolver cnfSolver;
-    if (timeLimitSeconds > 0) cnfSolver.setTimeLimit(timeLimitSeconds);
-    if (memoryLimitMegabytes > 0) cnfSolver.setMemoryLimit(memoryLimitMegabytes);
-    if (!answerPredicate.empty()) cnfSolver.setAnswerPredicateSymbol(answerPredicate);
-    FolSatSolver::Result result = cnfSolver.solve(clauseNodes);
+    std::unique_ptr<FolSatSolver> cnfSolver;
+    if (solverName.empty()) {
+        cnfSolver = std::make_unique<SuperpositionSolver>();
+    }
+    else if (solverName == "naive_resolution") {
+        cnfSolver = std::make_unique<NaiveResolutionSolver>();
+    }
+    else if (solverName == "naive_superposition") {
+        cnfSolver = std::make_unique<NaiveSuperpositionSolver>();
+    }
+    else if (solverName == "superposition") {
+        cnfSolver = std::make_unique<SuperpositionSolver>();
+    }
+    else {
+        std::cerr << "Unsupported solver: " << solverName << std::endl;
+        return OutStatus::INPUT_ERROR;
+    }
+
+    if (timeLimitSeconds > 0) cnfSolver->setTimeLimit(timeLimitSeconds);
+    if (memoryLimitMegabytes > 0) cnfSolver->setMemoryLimit(memoryLimitMegabytes);
+    if (!answerPredicate.empty()) cnfSolver->setAnswerPredicateSymbol(answerPredicate);
+    FolSatSolver::Result result = cnfSolver->solve(clauseNodes);
 
     Solver::OutStatus outStatus;
 
@@ -73,7 +92,7 @@ Solver::OutStatus Solver::solve(int timeLimitSeconds, int memoryLimitMegabytes,
     };
 
     if (prepareProof) {
-        ProofNodePtr proofRoot = cnfSolver.getProof();
+        ProofNodePtr proofRoot = cnfSolver->getProof();
         if (proofRoot) {
             ProofPrinter textPrinter(ProofPrinter::Format::TEXT_UTF8);
             this->textProof = textPrinter.toString(proofRoot);
