@@ -15,6 +15,8 @@ public:
     void setTimeLimit(int seconds) override;
     void setMemoryLimit(int megabytes) override;
 
+    void setAnswerPredicateName(const std::string& name) override;
+
     Result solve(const std::vector<ProofNodePtr>& clauses) override;
     ProofNodePtr getProof() const override;
 
@@ -34,6 +36,7 @@ private:
     double timeLimitSeconds = 0.0;
     int memoryLimitMegabytes = 0;
 
+    std::string answerPredicateName;
     ClausePtr proofRoot;
 
     std::pair<double, size_t> initResourceLimitState() const;
@@ -46,6 +49,7 @@ private:
         Clauses& reducedClauses, ClauseSelector& unprocessedClauses) const;
     void generateInferences(const ClausePtr& clause, const ClauseIndex& index, Clauses& inferredClauses) const;
     void makeClauseVariablesUnique(ClausePtr& clause);
+    bool satisfiesStopCondition(const ClausePtr& clause);
 
     ClausePtr applyBooleanSimplification(const ClausePtr& clause) const;
     ClausePtr applyDistinctObjectSimplification(const ClausePtr& clause) const;

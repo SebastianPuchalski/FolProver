@@ -31,6 +31,10 @@ void NaiveResolutionSolver::setMemoryLimit(int megabytes) {
     memoryLimitMegabytes = megabytes;
 }
 
+void NaiveResolutionSolver::setAnswerPredicateName(const std::string&) {
+    throw std::runtime_error("Answer extraction is not supported by this solver.");
+}
+
 FolSatSolver::Result NaiveResolutionSolver::solve(const std::vector<ProofNodePtr>& clauses) {
     auto startTime = std::chrono::steady_clock::now();
     size_t iterationCounter = 0;

@@ -25,30 +25,33 @@ void SuperpositionSolver::setMemoryLimit(int megabytes) {
     memoryLimitMegabytes = megabytes;
 }
 
+void SuperpositionSolver::setAnswerPredicateName(const std::string& name) {
+    answerPredicateName = name;
+}
+
 FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>& clauses) {
     auto resourceLimitState = initResourceLimitState();
 
-    ClauseSelector unprocessedClauses = createClauseSelector();
-    ClauseIndex processedClauses;
     transformer = ExpressionTransformer();
     proofRoot = nullptr;
 
-    auto contradiction = loadInitialClauses(clauses, unprocessedClauses);
-    if (contradiction) return Result::UNSATISFIABLE;
+    ClauseSelector unprocessedClauses = createClauseSelector();
+    ClauseIndex processedClauses;
+
+    auto solutionFound = loadInitialClauses(clauses, unprocessedClauses);
+    if (solutionFound) return Result::UNSATISFIABLE;
 
     while (!unprocessedClauses.isEmpty()) {
         auto checkResult = checkResourceLimits(resourceLimitState);
-        if (checkResult != Result::UNKNOWN) return checkResult;
+        if (checkResult == Result::TIME_OUT ||
+            checkResult == Result::MEMORY_OUT) return checkResult;
 
         ClausePtr givenClause = unprocessedClauses.selectClause();
         if (!givenClause) continue;
 
         givenClause = simplifyForward(givenClause, processedClauses);
         if (!givenClause) continue;
-        if (givenClause->literals.empty()) {
-            proofRoot = givenClause;
-            return Result::UNSATISFIABLE;
-        }
+        if (satisfiesStopCondition(givenClause)) return Result::UNSATISFIABLE;
 
         Clauses derivedClauses;
         simplifyBackward(processedClauses, givenClause, derivedClauses, unprocessedClauses);
@@ -60,10 +63,7 @@ FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>&
             clause = simplifyCheapForward(clause, processedClauses);
             clause = applyDistinctObjectSimplification(clause);
             if (!clause) continue;
-            if (clause->literals.empty()) {
-                proofRoot = clause;
-                return Result::UNSATISFIABLE;
-            }
+            if (satisfiesStopCondition(clause)) return Result::UNSATISFIABLE;
             unprocessedClauses.addClause(clause);
         }
     }
@@ -126,11 +126,7 @@ bool SuperpositionSolver::loadInitialClauses(const std::vector<ProofNodePtr>& cl
         inputClause = applyDistinctObjectSimplification(inputClause);
         if (!inputClause) continue;
 
-        if (inputClause->literals.empty()) {
-            proofRoot = inputClause;
-            return true;
-        }
-
+        if (satisfiesStopCondition(inputClause)) return true;
         makeClauseVariablesUnique(inputClause);
         unprocessedClauses.addClause(inputClause);
     }
@@ -290,6 +286,27 @@ void SuperpositionSolver::generateInferences(
         applySuperposition(procClause, clause, inferredClauses);
     }
     applySuperposition(clause, clause, inferredClauses);
+}
+
+bool SuperpositionSolver::satisfiesStopCondition(const ClausePtr& clause) {
+    if (clause->literals.empty()) {
+        proofRoot = clause;
+        return true;
+    }
+
+    if (!answerPredicateName.empty()) {
+        if (clause->literals.size() == 1) {
+            auto literal = clause->literals.front();
+            if (literal->exprType == Expression::Type::PREDICATE) {
+                auto predicate = std::static_pointer_cast<PredicateFormula>(literal);
+                if (predicate->symbol == answerPredicateName) {
+                    proofRoot = clause;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void SuperpositionSolver::makeClauseVariablesUnique(ClausePtr& clause) {

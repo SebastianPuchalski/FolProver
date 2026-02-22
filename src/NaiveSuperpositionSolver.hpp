@@ -14,6 +14,8 @@ public:
     void setTimeLimit(int seconds) override;
     void setMemoryLimit(int megabytes) override;
 
+    void setAnswerPredicateName(const std::string& name) override;
+
     Result solve(const std::vector<ProofNodePtr>& clauses) override;
     ProofNodePtr getProof() const override;
 

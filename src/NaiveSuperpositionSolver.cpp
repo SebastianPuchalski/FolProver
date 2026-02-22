@@ -34,6 +34,10 @@ void NaiveSuperpositionSolver::setMemoryLimit(int megabytes) {
     memoryLimitMegabytes = megabytes;
 }
 
+void NaiveSuperpositionSolver::setAnswerPredicateName(const std::string&) {
+    throw std::runtime_error("Answer extraction is not supported by this solver.");
+}
+
 FolSatSolver::Result NaiveSuperpositionSolver::solve(const std::vector<ProofNodePtr>& clauses) {
     auto startTime = std::chrono::steady_clock::now();
     size_t iterationCounter = 0;

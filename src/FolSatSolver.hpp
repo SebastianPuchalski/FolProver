@@ -20,6 +20,8 @@ public:
     virtual void setTimeLimit(int seconds) = 0;
     virtual void setMemoryLimit(int megabytes) = 0;
 
+    virtual void setAnswerPredicateName(const std::string& name) = 0;
+
     virtual Result solve(const std::vector<ProofNodePtr>& formulas) = 0;
     virtual ProofNodePtr getProof() const = 0;
 };
