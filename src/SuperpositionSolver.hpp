@@ -42,7 +42,8 @@ private:
     std::pair<double, size_t> initResourceLimitState() const;
     Result checkResourceLimits(std::pair<double, size_t>& state) const;
     ClauseSelector createClauseSelector() const;
-    bool loadInitialClauses(const std::vector<ProofNodePtr>& clauses, ClauseSelector& unprocessedClauses);
+    bool loadInitialClauses(const std::vector<ProofNodePtr>& clauses,
+        ClauseSelector& unprocessedClauses, bool useEquationalLogic = false);
     ClausePtr simplifyForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
     ClausePtr simplifyCheapForward(const ClausePtr& clauseToSimplify, const ClauseIndex& index) const;
     void simplifyBackward(ClauseIndex& indexToSimplify, const ClausePtr& clause,

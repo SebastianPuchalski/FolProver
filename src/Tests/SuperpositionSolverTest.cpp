@@ -1651,3 +1651,20 @@ TEST_F(SuperpositionSolverTest, EqualitySymmetry_SimpleMismatch) {
     auto result = solve(clauses);
     EXPECT_EQ(result, FolSatSolver::Result::UNSATISFIABLE);
 }
+
+// 72. Potencjalna niekompletnosc w EquationalLogicTranslator
+TEST_F(SuperpositionSolverTest, EqualitySymmetryEquivalenceCNF) {
+    auto a = Func("a");
+    auto b = Func("b");
+
+    // Teza: eq(a,b) <=> eq(b,a)
+    // Refutacja (zaprzeczenie tezy): XOR(eq(a,b), eq(b,a))
+    // W postaci CNF to dwie klauzule: (A v B) oraz (~A v ~B)
+    auto clauses = std::vector<FormulaPtr>{
+        Clause({ Equal(a, b), Equal(b, a) }),
+        Clause({ Not(Equal(a, b)), Not(Equal(b, a)) })
+    };
+
+    auto result = solve(clauses);
+    EXPECT_EQ(result, FolSatSolver::Result::UNSATISFIABLE);
+}

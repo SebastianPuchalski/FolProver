@@ -1,5 +1,6 @@
 #include "SuperpositionSolver.hpp"
 
+#include "EquationalLogicTranslator.hpp"
 #include "ExpressionUtils.hpp"
 #include "Unification.hpp"
 #include "Utils.hpp"
@@ -26,8 +27,9 @@ void SuperpositionSolver::setMemoryLimit(int megabytes) {
 }
 
 void SuperpositionSolver::setAnswerPredicateSymbol(const std::string& symbol) {
+    assert(answerPredicateSymbol.empty());
     answerPredicateSymbol = symbol;
-    lpo.setLowerPrecedencePredicate(answerPredicateSymbol);
+    lpo.addLowerPrecedenceSymbol(answerPredicateSymbol);
 }
 
 FolSatSolver::Result SuperpositionSolver::solve(const std::vector<ProofNodePtr>& clauses) {
@@ -113,8 +115,19 @@ SuperpositionSolver::ClauseSelector SuperpositionSolver::createClauseSelector() 
     return ClauseSelector(selectionStrategies, lpo);
 }
 
-bool SuperpositionSolver::loadInitialClauses(const std::vector<ProofNodePtr>& clauses,
-    ClauseSelector& unprocessedClauses) {
+bool SuperpositionSolver::loadInitialClauses(
+    const std::vector<ProofNodePtr>& clauses,
+    ClauseSelector& unprocessedClauses,
+    bool useEquationalLogic) {
+
+    if (useEquationalLogic) {
+        EquationalLogicTranslator translator;
+        auto translated = translator.translateToEquationalLogic(clauses);
+        lpo.addLowerPrecedenceSymbol(translator.SYMBOL_TRUE);
+        lpo.addLowerPrecedenceSymbol(translator.SYMBOL_FALSE);
+        return loadInitialClauses(translated, unprocessedClauses, false);
+    }
+
     for (size_t i = 0; i < clauses.size(); ++i) {
         const auto& formula = clauses[i]->getFormula();
         assert(formula);

@@ -75,6 +75,9 @@
     <ClCompile Include="..\src\SuperpositionSolverUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\EquationalLogicTranslator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ExpressionPrinter.hpp">
@@ -144,6 +147,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\SuperpositionSolverUtils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\EquationalLogicTranslator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

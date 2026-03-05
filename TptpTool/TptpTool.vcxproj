@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\EquationalLogicTranslator.cpp" />
     <ClCompile Include="..\src\SuperpositionSolver.cpp" />
     <ClCompile Include="..\src\SuperpositionSolverUtils.cpp" />
     <ClCompile Include="..\src\Unification.cpp" />
@@ -41,6 +42,7 @@
     <ClCompile Include="..\src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\EquationalLogicTranslator.hpp" />
     <ClInclude Include="..\src\SuperpositionSolver.hpp" />
     <ClInclude Include="..\src\SuperpositionSolverUtils.hpp" />
     <ClInclude Include="..\src\Unification.hpp" />
