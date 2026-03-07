@@ -218,7 +218,8 @@ std::vector<ProofNodePtr> EquationalLogicTranslator::generateEqualityAxioms(
     namespace EB = ExpressionBuilder;
     std::vector<ProofNodePtr> axioms;
 
-    auto addAxiom = [&](const TermPtr& left, const TermPtr& right, const std::string& ruleName) {
+    auto addAxiom = [&](const TermPtr& left, const TermPtr& right,
+        const std::string& ruleName) {
         axioms.push_back(ProofStep::create(
             EB::Equal(left, right),
             ProofNode::Type::PREMISE,
@@ -230,17 +231,9 @@ std::vector<ProofNodePtr> EquationalLogicTranslator::generateEqualityAxioms(
     auto z = EB::Var("Z");
     auto trueTerm = EB::Func(SYMBOL_TRUE);
 
-    std::map<std::string, size_t> allArities = functionArities;
-    for (const auto& [name, arity] : predicateArities) {
-        allArities[name] = arity;
-    }
-    allArities[SYMBOL_NOT] = 1;
-    allArities[SYMBOL_OR] = 2;
-    allArities[SYMBOL_EQ] = 2;
-
     // Reflexivity: eq(x, x) = T
     addAxiom(EB::Func(SYMBOL_EQ, { x, x }),
-        EB::Func(SYMBOL_TRUE), "equality_reflexivity");
+        trueTerm, "equality_reflexivity");
 
     // Symmetry (optional): eq(x, y) = eq(y, x)
     addAxiom(EB::Func(SYMBOL_EQ, { x, y }),
@@ -250,7 +243,7 @@ std::vector<ProofNodePtr> EquationalLogicTranslator::generateEqualityAxioms(
     // Symmetry (optional): or(not(eq(x, y)), eq(y, x)) = T
     addAxiom(EB::Func(SYMBOL_OR, {
         EB::Func(SYMBOL_NOT, { EB::Func(SYMBOL_EQ, { x, y }) }),
-        EB::Func(SYMBOL_EQ, { y, x })}),
+        EB::Func(SYMBOL_EQ, { y, x }) }),
         trueTerm, "equality_symmetry");
 
     // Transitivity (optional): or(not(eq(x, y)), or(not(eq(y, z)), eq(x, z))) = T
@@ -258,83 +251,72 @@ std::vector<ProofNodePtr> EquationalLogicTranslator::generateEqualityAxioms(
         EB::Func(SYMBOL_NOT, { EB::Func(SYMBOL_EQ, { x, y }) }),
         EB::Func(SYMBOL_OR, {
             EB::Func(SYMBOL_NOT, { EB::Func(SYMBOL_EQ, { y, z }) }),
-            EB::Func(SYMBOL_EQ, { x, z })})}),
+            EB::Func(SYMBOL_EQ, { x, z })}) }),
             trueTerm, "equality_transitivity");
 
+    // Extraction:
     if (!useExtractionRule) {
-        // It may be incorrect in sense of blocking
+        // guard(1, x) = x
+        addAxiom(EB::Func(SYMBOL_GUARD, { trueTerm, x }), x, "guard_reduction");
 
-        // Guard reduction axiom: g(T, x) = x
-        const std::string SYMBOL_GUARD = "$guard";
-        addAxiom(EB::Func(SYMBOL_GUARD, { trueTerm, x }),
-            x, "guard_reduction");
-        // allArities[SYMBOL_GUARD] = 2;
+        // guard(eq(x, y), x) = guard(eq(x, y), y)
+        addAxiom(EB::Func(SYMBOL_GUARD, { EB::Func(SYMBOL_EQ, { x, y }), x }),
+            EB::Func(SYMBOL_GUARD, { EB::Func(SYMBOL_EQ, { x, y }), y }),
+            "extraction_equality");
+    }
 
-        // Congruence: g(eq(x, y), f(..x..)) = g(eq(x, y), f(..y..))
-        for (const auto& [symbol, arity] : allArities) {
-            if (arity == 0) continue;
-            for (size_t i = 0; i < arity; ++i) {
-                std::vector<TermPtr> argsLeft;
-                std::vector<TermPtr> argsRight;
-                for (size_t j = 0; j < arity; ++j) {
-                    if (j == i) {
-                        argsLeft.push_back(x);
-                        argsRight.push_back(y);
-                    }
-                    else {
-                        auto z = EB::Var("Z" + std::to_string(j));
-                        argsLeft.push_back(z);
-                        argsRight.push_back(z);
-                    }
+    std::map<std::string, size_t> allPredicates = predicateArities;
+    allPredicates[SYMBOL_NOT] = 1;
+    allPredicates[SYMBOL_OR] = 2;
+    allPredicates[SYMBOL_EQ] = 2;
+    allPredicates[SYMBOL_GUARD] = 2;
+
+    // Congruence: or(not(eq(x, y)), or(not(P(z1, ..., x, ..., zn)), P(z1, ..., y, ..., zn))) = 1
+    for (const auto& [name, arity] : allPredicates) {
+        for (size_t i = 0; i < arity; ++i) {
+            std::vector<TermPtr> args1, args2;
+            for (size_t j = 0; j < arity; ++j) {
+                if (i == j) {
+                    args1.push_back(x);
+                    args2.push_back(y);
                 }
-
-                auto eqTerm = EB::Func(SYMBOL_EQ, { x, y });
-                auto funcLeft = EB::Func(symbol, argsLeft);
-                auto funcRight = EB::Func(symbol, argsRight);
-
-                auto guardLeft = EB::Func(SYMBOL_GUARD, { eqTerm, funcLeft });
-                auto guardRight = EB::Func(SYMBOL_GUARD, { eqTerm, funcRight });
-
-                std::string ruleName = "equality_congruence_" + symbol + "_" + std::to_string(i);
-                addAxiom(guardLeft, guardRight, ruleName);
+                else {
+                    auto argVar = EB::Var("Z" + std::to_string(j));
+                    args1.push_back(argVar);
+                    args2.push_back(argVar);
+                }
             }
+            auto p1 = EB::Func(name, args1);
+            auto p2 = EB::Func(name, args2);
+            auto congruenceTerm = EB::Func(SYMBOL_OR, {
+                EB::Func(SYMBOL_NOT, { EB::Func(SYMBOL_EQ, { x, y }) }),
+                EB::Func(SYMBOL_OR, {
+                    EB::Func(SYMBOL_NOT, { p1 }), p2 }) });
+            addAxiom(congruenceTerm, trueTerm, "predicate_congruence");
         }
     }
-    else {
-        // Is this even necessary?
 
-        // Congruence: or(not(eq(x, y)), eq(f(..x..), f(..y..))) = T
-        for (const auto& [symbol, arity] : allArities) {
-            if (arity == 0) continue;
-            for (size_t i = 0; i < arity; ++i) {
-                std::vector<TermPtr> argsLeft;
-                std::vector<TermPtr> argsRight;
-                for (size_t j = 0; j < arity; ++j) {
-                    if (j == i) {
-                        argsLeft.push_back(x);
-                        argsRight.push_back(y);
-                    }
-                    else {
-                        auto z = EB::Var("Z" + std::to_string(j));
-                        argsLeft.push_back(z);
-                        argsRight.push_back(z);
-                    }
+    // Congruence: or2(not(eq(x, y)), eq(f(z1, ..., x, ..., zn), f(z1, ..., y, ..., zn))) = 1
+    for (const auto& [name, arity] : functionArities) {
+        for (size_t i = 0; i < arity; ++i) {
+            std::vector<TermPtr> args1, args2;
+            for (size_t j = 0; j < arity; ++j) {
+                if (i == j) {
+                    args1.push_back(x);
+                    args2.push_back(y);
                 }
-
-                auto eqArgs = EB::Func(SYMBOL_EQ, { x, y });
-                auto funcLeft = EB::Func(symbol, argsLeft);
-                auto funcRight = EB::Func(symbol, argsRight);
-
-                auto eqFuncs = EB::Func(SYMBOL_EQ, { funcLeft, funcRight });
-
-                auto notEqArgs = EB::Func(SYMBOL_NOT, { eqArgs });
-                auto implication = EB::Func(SYMBOL_OR, { notEqArgs, eqFuncs });
-
-                std::string ruleName = "equality_congruence_" + symbol + "_" + std::to_string(i);
-
-                auto trueTerm = EB::Func(SYMBOL_TRUE, {});
-                addAxiom(implication, trueTerm, ruleName);
+                else {
+                    auto argVar = EB::Var("Z" + std::to_string(j));
+                    args1.push_back(argVar);
+                    args2.push_back(argVar);
+                }
             }
+            auto f1 = EB::Func(name, args1);
+            auto f2 = EB::Func(name, args2);
+            auto congruenceTerm = EB::Func(SYMBOL_OR, {
+                EB::Func(SYMBOL_NOT, { EB::Func(SYMBOL_EQ, { x, y }) }),
+                EB::Func(SYMBOL_EQ, { f1, f2 }) });
+            addAxiom(congruenceTerm, trueTerm, "function_congruence");
         }
     }
 
@@ -370,22 +352,23 @@ std::vector<ProofNodePtr> EquationalLogicTranslator::generateMetaRules() const {
     auto trueTerm = EB::Func(SYMBOL_TRUE);
     auto falseTerm = EB::Func(SYMBOL_FALSE);
 
-    // Meta extraction: ~(eq(x, y) = T) | (x = y)
     if (useExtractionRule) {
+        // Meta extraction: eq(x, y) = T -> x = y
+        // CNF: ~(eq(x, y) = T) | (x = y)
         auto eqFuncIsTrue = EB::Equal(EB::Func(SYMBOL_EQ, { x, y }), trueTerm);
         auto nativeEq = EB::Equal(x, y);
         rules.push_back(ProofStep::create(
             EB::Disjunction({ EB::Not(eqFuncIsTrue), nativeEq }),
             ProofNode::Type::PREMISE, "meta_extraction", {}));
-    }
 
-    // Is this necessary?
-    // Meta inclusion: x = y -> eq(x, y) = T
-    // CNF: ~(x = y) v eq(x, y) = T
-    rules.push_back(ProofStep::create(EB::Disjunction({
-        EB::Not(EB::Equal(x, y)),
-        EB::Equal(EB::Func(SYMBOL_EQ, { x, y }), trueTerm) }),
-        ProofNode::Type::PREMISE, "meta_inclusion", {}));
+        // Is this necessary?
+        // Meta inclusion: x = y -> eq(x, y) = T
+        // CNF: ~(x = y) v eq(x, y) = T
+            rules.push_back(ProofStep::create(EB::Disjunction({
+                EB::Not(EB::Equal(x, y)),
+                EB::Equal(EB::Func(SYMBOL_EQ, { x, y }), trueTerm) }),
+                ProofNode::Type::PREMISE, "meta_inclusion", {}));
+    }
 
     // Meta contradiction: ~(T = F)
     rules.push_back(ProofStep::create(

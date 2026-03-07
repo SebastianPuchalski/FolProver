@@ -17,6 +17,7 @@ public:
     const std::string SYMBOL_OR = "$or";
     const std::string SYMBOL_NOT = "$not";
     const std::string SYMBOL_EQ = "$eq";
+    const std::string SYMBOL_GUARD = "$guard";
 
 private:
     bool useExtractionRule = true;
