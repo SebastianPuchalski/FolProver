@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proof Visualization</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --border: 1px solid #dee2e6;
+            --bg-hover: #f8f9fa;
+            --bg-highlight: #fff3cd;
+            --clr-text: #212529;
+            --clr-meta: #4c555d;
+            --clr-link: #0d6efd;
+            --font-main: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--clr-text);
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .proof-container {
+            border: var(--border);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: fit-content;
+            max-width: 98%;
+            margin: 0 auto;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .proof-title {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-bottom: var(--border);
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .proof-body-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .proof-body {
+            display: grid;
+            grid-template-columns: max-content max-content minmax(300px, 1fr) max-content;
+        }
+
+        .proof-row { display: contents; }
+
+        .proof-row > div {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+        }
+
+        .row-hover > div { background-color: var(--bg-hover); }
+        .row-highlight > div { background-color: var(--bg-highlight); transition: background 0.2s; }
+
+        .col-id {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--clr-meta);
+            border-right: 1px solid #eee;
+            justify-content: flex-end;
+            white-space: nowrap;
+        }
+
+        .col-role { justify-content: center; padding-left: 15px; padding-right: 15px; }
+
+        .col-formula {
+            font-family: 'Latin Modern Math', 'Cambria Math', serif;
+            font-size: 1.15em;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .col-formula::-webkit-scrollbar { height: 4px; }
+        .col-formula::-webkit-scrollbar-thumb { background: #ccc; }
+
+        .col-source {
+            border-left: 1px solid #eee;
+            font-size: 0.9em;
+            color: var(--clr-meta);
+            white-space: nowrap;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        .col-source a { color: var(--clr-link); }
+        .col-id a { color: inherit; text-decoration: none; cursor: pointer; }
+        .col-id a:hover { text-decoration: underline; color: #000; }
+        .col-source a:hover { text-decoration: underline; }
+
+        .src-file { color: #806060; }
+        .src-name { color: #402020; font-weight: normal; }
+        .src-rule { color: #003366; font-weight: normal; }
+        .src-parents { color: #888; margin-left: 5px; }
+
+        /* --- ROLE STYLES --- */
+        .role-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: lowercase;
+            font-variant: small-caps;
+        }
+        
+        /* Group 1: Base Truths & Definitions (Dark Green) */
+        .role-axiom, .role-hypothesis, 
+        .role-definition, .role-assumption, 
+        .role-lemma, .role-theorem { 
+            color: #198754; 
+        }
+        
+        /* Group 2: Conflicts & Goals (Red/Orange) */
+        .role-negated_conjecture { color: #d32f2f; }
+        .role-conjecture { color: #e65100; }
+        
+        /* Group 3: Steps & Technical (Subtle Grey) */
+        .role-plain, .role-unknown, 
+        .role-type, .role-fi_domain, .role-fi_functors, .role-fi_predicates { 
+            color: #8d8d8d; 
+            font-weight: 500; 
+        }
+        
+        @media (max-width: 800px) {
+             .proof-body { grid-template-columns: 1fr; }
+             .proof-row { display: flex; flex-direction: column; border-bottom: 4px solid #eee; }
+             .proof-row > div { border: none; width: 100%; justify-content: flex-start; padding: 4px 10px; }
+             .col-id { border-right: none; }
+             .col-source { border-left: none; }
+             .col-formula { white-space: normal; overflow-x: visible; }
+        }
+    </style>
+</head>
+<body>
+    <div class="proof-container">
+        <div class="proof-title">Proof</div>
+        <div class="proof-body-wrapper">
+            <div class="proof-body">
+<div class='proof-row' id='n1' data-parents=''>
+  <div class='col-id'><a href='#n1'>1</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \exists \mathit{X}\, \left(\mathrm{lives}(\mathit{X}) \land \mathrm{killed}(\mathit{X}, \mathrm{agatha})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_1</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n2' data-parents=''>
+  <div class='col-id'><a href='#n2'>2</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{lives}(\mathit{X}) \to \mathit{X} = \mathrm{agatha} \lor \mathit{X} = \mathrm{butler} \lor \mathit{X} = \mathrm{charles}\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_3</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n3' data-parents=''>
+  <div class='col-id'><a href='#n3'>3</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{killed}(\mathit{X}, \mathit{Y}) \to \mathrm{hates}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_4</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n4' data-parents=''>
+  <div class='col-id'><a href='#n4'>4</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\neg \left(\mathit{X} = \mathrm{butler}\right) \to \mathrm{hates}(\mathrm{agatha}, \mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_7</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n5' data-parents=''>
+  <div class='col-id'><a href='#n5'>5</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{hates}(\mathrm{agatha}, \mathit{X}) \to \neg \mathrm{hates}(\mathrm{charles}, \mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_6</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n6' data-parents=''>
+  <div class='col-id'><a href='#n6'>6</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \neg \left(\mathrm{agatha} = \mathrm{butler}\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_11</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n7' data-parents=''>
+  <div class='col-id'><a href='#n7'>7</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\neg \mathrm{richer}(\mathit{X}, \mathrm{agatha}) \to \mathrm{hates}(\mathrm{butler}, \mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_8</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n8' data-parents=''>
+  <div class='col-id'><a href='#n8'>8</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{killed}(\mathit{X}, \mathit{Y}) \to \neg \mathrm{richer}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_5</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n9' data-parents=''>
+  <div class='col-id'><a href='#n9'>9</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{hates}(\mathrm{agatha}, \mathit{X}) \to \mathrm{hates}(\mathrm{butler}, \mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_9</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n10' data-parents=''>
+  <div class='col-id'><a href='#n10'>10</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \exists \mathit{Y}\, \neg \mathrm{hates}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-name'>pel55_10</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n11' data-parents=''>
+  <div class='col-id'><a href='#n11'>11</a></div>
+  <div class='col-role'><span class='role-badge role-conjecture'>conjecture</span></div>
+  <div class='col-formula'>\( \mathrm{killed}(\mathrm{agatha}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-name'>pel55</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ001+1.p</span></div>
+</div>
+<div class='proof-row' id='n12' data-parents='n1'>
+  <div class='col-id'><a href='#n12'>12</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{killed}(\mathrm{sk1}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n1'>1</a> ]</span></div>
+</div>
+<div class='proof-row' id='n13' data-parents='n1'>
+  <div class='col-id'><a href='#n13'>13</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{lives}(\mathrm{sk1}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n1'>1</a> ]</span></div>
+</div>
+<div class='proof-row' id='n14' data-parents='n2'>
+  <div class='col-id'><a href='#n14'>14</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{lives}(\mathit{X}) \lor \mathit{X} = \mathrm{agatha} \lor \mathit{X} = \mathrm{butler} \lor \mathit{X} = \mathrm{charles} \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n2'>2</a> ]</span></div>
+</div>
+<div class='proof-row' id='n15' data-parents='n13 n14'>
+  <div class='col-id'><a href='#n15'>15</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk1} = \mathrm{agatha} \lor \mathrm{sk1} = \mathrm{butler} \lor \mathrm{sk1} = \mathrm{charles} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n13'>13</a>, <a href='#n14'>14</a> ]</span></div>
+</div>
+<div class='proof-row' id='n16' data-parents='n3'>
+  <div class='col-id'><a href='#n16'>16</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{killed}(\mathit{X}, \mathit{Y}) \lor \mathrm{hates}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n3'>3</a> ]</span></div>
+</div>
+<div class='proof-row' id='n17' data-parents='n12 n16'>
+  <div class='col-id'><a href='#n17'>17</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{hates}(\mathrm{sk1}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n12'>12</a>, <a href='#n16'>16</a> ]</span></div>
+</div>
+<div class='proof-row' id='n18' data-parents='n15 n17'>
+  <div class='col-id'><a href='#n18'>18</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk1} = \mathrm{agatha} \lor \mathrm{sk1} = \mathrm{butler} \lor \mathrm{hates}(\mathrm{charles}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>superposition</span> <span class='src-parents'>[ <a href='#n15'>15</a>, <a href='#n17'>17</a> ]</span></div>
+</div>
+<div class='proof-row' id='n19' data-parents='n4'>
+  <div class='col-id'><a href='#n19'>19</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathit{X} = \mathrm{butler} \lor \mathrm{hates}(\mathrm{agatha}, \mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n4'>4</a> ]</span></div>
+</div>
+<div class='proof-row' id='n20' data-parents='n5'>
+  <div class='col-id'><a href='#n20'>20</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{hates}(\mathrm{agatha}, \mathit{X}) \lor \neg \mathrm{hates}(\mathrm{charles}, \mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n5'>5</a> ]</span></div>
+</div>
+<div class='proof-row' id='n21' data-parents='n19 n20'>
+  <div class='col-id'><a href='#n21'>21</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathit{V11} = \mathrm{butler} \lor \neg \mathrm{hates}(\mathrm{charles}, \mathit{V11}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n20'>20</a> ]</span></div>
+</div>
+<div class='proof-row' id='n22' data-parents='n18 n21'>
+  <div class='col-id'><a href='#n22'>22</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk1} = \mathrm{agatha} \lor \mathrm{sk1} = \mathrm{butler} \lor \mathrm{agatha} = \mathrm{butler} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n18'>18</a>, <a href='#n21'>21</a> ]</span></div>
+</div>
+<div class='proof-row' id='n23' data-parents='n6'>
+  <div class='col-id'><a href='#n23'>23</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \left(\mathrm{agatha} = \mathrm{butler}\right) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n6'>6</a> ]</span></div>
+</div>
+<div class='proof-row' id='n24' data-parents='n22 n23'>
+  <div class='col-id'><a href='#n24'>24</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk1} = \mathrm{agatha} \lor \mathrm{sk1} = \mathrm{butler} \)</div>
+  <div class='col-source'><span class='src-rule'>negative_simplify-reflect</span> <span class='src-parents'>[ <a href='#n22'>22</a>, <a href='#n23'>23</a> ]</span></div>
+</div>
+<div class='proof-row' id='n25' data-parents='n7'>
+  <div class='col-id'><a href='#n25'>25</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{richer}(\mathit{X}, \mathrm{agatha}) \lor \mathrm{hates}(\mathrm{butler}, \mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n7'>7</a> ]</span></div>
+</div>
+<div class='proof-row' id='n26' data-parents='n8'>
+  <div class='col-id'><a href='#n26'>26</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{killed}(\mathit{X}, \mathit{Y}) \lor \neg \mathrm{richer}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n8'>8</a> ]</span></div>
+</div>
+<div class='proof-row' id='n27' data-parents='n12 n26'>
+  <div class='col-id'><a href='#n27'>27</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{richer}(\mathrm{sk1}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n12'>12</a>, <a href='#n26'>26</a> ]</span></div>
+</div>
+<div class='proof-row' id='n28' data-parents='n25 n27'>
+  <div class='col-id'><a href='#n28'>28</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{hates}(\mathrm{butler}, \mathrm{sk1}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n25'>25</a>, <a href='#n27'>27</a> ]</span></div>
+</div>
+<div class='proof-row' id='n29' data-parents='n24 n28'>
+  <div class='col-id'><a href='#n29'>29</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk1} = \mathrm{agatha} \lor \mathrm{hates}(\mathrm{butler}, \mathrm{butler}) \)</div>
+  <div class='col-source'><span class='src-rule'>superposition</span> <span class='src-parents'>[ <a href='#n24'>24</a>, <a href='#n28'>28</a> ]</span></div>
+</div>
+<div class='proof-row' id='n30' data-parents='n9'>
+  <div class='col-id'><a href='#n30'>30</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{hates}(\mathrm{agatha}, \mathit{X}) \lor \mathrm{hates}(\mathrm{butler}, \mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n9'>9</a> ]</span></div>
+</div>
+<div class='proof-row' id='n31' data-parents='n10'>
+  <div class='col-id'><a href='#n31'>31</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{hates}(\mathit{X}, \mathrm{sk2}(\mathit{X})) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n10'>10</a> ]</span></div>
+</div>
+<div class='proof-row' id='n32' data-parents='n30 n31'>
+  <div class='col-id'><a href='#n32'>32</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{hates}(\mathrm{agatha}, \mathrm{sk2}(\mathrm{butler})) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n30'>30</a>, <a href='#n31'>31</a> ]</span></div>
+</div>
+<div class='proof-row' id='n33' data-parents='n19 n32'>
+  <div class='col-id'><a href='#n33'>33</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk2}(\mathrm{butler}) = \mathrm{butler} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n32'>32</a> ]</span></div>
+</div>
+<div class='proof-row' id='n34' data-parents='n33 n31'>
+  <div class='col-id'><a href='#n34'>34</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{hates}(\mathrm{butler}, \mathrm{butler}) \)</div>
+  <div class='col-source'><span class='src-rule'>superposition</span> <span class='src-parents'>[ <a href='#n33'>33</a>, <a href='#n31'>31</a> ]</span></div>
+</div>
+<div class='proof-row' id='n35' data-parents='n29 n34'>
+  <div class='col-id'><a href='#n35'>35</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk1} = \mathrm{agatha} \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n29'>29</a>, <a href='#n34'>34</a> ]</span></div>
+</div>
+<div class='proof-row' id='n36' data-parents='n12 n35'>
+  <div class='col-id'><a href='#n36'>36</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{killed}(\mathrm{agatha}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>demodulation</span> <span class='src-parents'>[ <a href='#n12'>12</a>, <a href='#n35'>35</a> ]</span></div>
+</div>
+<div class='proof-row' id='n37' data-parents='n11'>
+  <div class='col-id'><a href='#n37'>37</a></div>
+  <div class='col-role'><span class='role-badge role-negated_conjecture'>negated_conjecture</span></div>
+  <div class='col-formula'>\( \neg \mathrm{killed}(\mathrm{agatha}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>negate_conjecture</span> <span class='src-parents'>[ <a href='#n11'>11</a> ]</span></div>
+</div>
+<div class='proof-row' id='n38' data-parents='n37'>
+  <div class='col-id'><a href='#n38'>38</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{killed}(\mathrm{agatha}, \mathrm{agatha}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n37'>37</a> ]</span></div>
+</div>
+<div class='proof-row' id='n39' data-parents='n36 n38'>
+  <div class='col-id'><a href='#n39'>39</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \bot \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n36'>36</a>, <a href='#n38'>38</a> ]</span></div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Scroll handling for display: contents
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetRow = document.getElementById(targetId);
+                
+                if (targetRow) {
+                    const firstChild = targetRow.firstElementChild;
+                    if (firstChild) {
+                        firstChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        highlightRow(targetId, 'row-hover');
+                        setTimeout(() => unhighlightRow(targetId, 'row-hover'), 1500);
+                    }
+                }
+            });
+        });
+
+        const rows = document.querySelectorAll('.proof-row');
+
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                const id = row.id;
+                highlightRow(id, 'row-hover');
+                const parents = row.getAttribute('data-parents');
+                if (parents) {
+                    parents.split(' ').forEach(pid => highlightRow(pid, 'row-highlight'));
+                }
+            });
+
+            row.addEventListener('mouseleave', () => {
+                const id = row.id;
+                unhighlightRow(id, 'row-hover');
+                const parents = row.getAttribute('data-parents');
+                if (parents) {
+                    parents.split(' ').forEach(pid => unhighlightRow(pid, 'row-highlight'));
+                }
+            });
+        });
+
+        function highlightRow(id, className) {
+            if (!id) return;
+            const row = document.getElementById(id);
+            if (row) row.classList.add(className);
+        }
+
+        function unhighlightRow(id, className) {
+            if (!id) return;
+            const row = document.getElementById(id);
+            if (row) row.classList.remove(className);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+[1] axiom:                ∃X(lives(X) ∧ killed(X, agatha))                        { pel55_1 | Problems/PUZ/PUZ001+1.p }
+[2] axiom:                ∀X(lives(X) ⇒ X = agatha ∨ X = butler ∨ X = charles)    { pel55_3 | Problems/PUZ/PUZ001+1.p }
+[3] axiom:                ∀X∀Y(killed(X, Y) ⇒ hates(X, Y))                        { pel55_4 | Problems/PUZ/PUZ001+1.p }
+[4] axiom:                ∀X(¬(X = butler) ⇒ hates(agatha, X))                    { pel55_7 | Problems/PUZ/PUZ001+1.p }
+[5] axiom:                ∀X(hates(agatha, X) ⇒ ¬hates(charles, X))               { pel55_6 | Problems/PUZ/PUZ001+1.p }
+[6] axiom:                ¬(agatha = butler)                                      { pel55_11 | Problems/PUZ/PUZ001+1.p }
+[7] axiom:                ∀X(¬richer(X, agatha) ⇒ hates(butler, X))               { pel55_8 | Problems/PUZ/PUZ001+1.p }
+[8] axiom:                ∀X∀Y(killed(X, Y) ⇒ ¬richer(X, Y))                      { pel55_5 | Problems/PUZ/PUZ001+1.p }
+[9] axiom:                ∀X(hates(agatha, X) ⇒ hates(butler, X))                 { pel55_9 | Problems/PUZ/PUZ001+1.p }
+[10] axiom:               ∀X∃Y¬hates(X, Y)                                        { pel55_10 | Problems/PUZ/PUZ001+1.p }
+[11] conjecture:          killed(agatha, agatha)                                  { pel55 | Problems/PUZ/PUZ001+1.p }
+[12] plain:               killed(sk1, agatha)                                     { cnf_transformation [1] }
+[13] plain:               lives(sk1)                                              { cnf_transformation [1] }
+[14] plain:               ¬lives(X) ∨ X = agatha ∨ X = butler ∨ X = charles       { cnf_transformation [2] }
+[15] plain:               sk1 = agatha ∨ sk1 = butler ∨ sk1 = charles             { resolution [13, 14] }
+[16] plain:               ¬killed(X, Y) ∨ hates(X, Y)                             { cnf_transformation [3] }
+[17] plain:               hates(sk1, agatha)                                      { resolution [12, 16] }
+[18] plain:               sk1 = agatha ∨ sk1 = butler ∨ hates(charles, agatha)    { superposition [15, 17] }
+[19] plain:               X = butler ∨ hates(agatha, X)                           { cnf_transformation [4] }
+[20] plain:               ¬hates(agatha, X) ∨ ¬hates(charles, X)                  { cnf_transformation [5] }
+[21] plain:               V11 = butler ∨ ¬hates(charles, V11)                     { resolution [19, 20] }
+[22] plain:               sk1 = agatha ∨ sk1 = butler ∨ agatha = butler           { resolution [18, 21] }
+[23] plain:               ¬(agatha = butler)                                      { cnf_transformation [6] }
+[24] plain:               sk1 = agatha ∨ sk1 = butler                             { negative_simplify-reflect [22, 23] }
+[25] plain:               richer(X, agatha) ∨ hates(butler, X)                    { cnf_transformation [7] }
+[26] plain:               ¬killed(X, Y) ∨ ¬richer(X, Y)                           { cnf_transformation [8] }
+[27] plain:               ¬richer(sk1, agatha)                                    { resolution [12, 26] }
+[28] plain:               hates(butler, sk1)                                      { resolution [25, 27] }
+[29] plain:               sk1 = agatha ∨ hates(butler, butler)                    { superposition [24, 28] }
+[30] plain:               ¬hates(agatha, X) ∨ hates(butler, X)                    { cnf_transformation [9] }
+[31] plain:               ¬hates(X, sk2(X))                                       { cnf_transformation [10] }
+[32] plain:               ¬hates(agatha, sk2(butler))                             { resolution [30, 31] }
+[33] plain:               sk2(butler) = butler                                    { resolution [19, 32] }
+[34] plain:               ¬hates(butler, butler)                                  { superposition [33, 31] }
+[35] plain:               sk1 = agatha                                            { predicate_unit_simplification [29, 34] }
+[36] plain:               killed(agatha, agatha)                                  { demodulation [12, 35] }
+[37] negated_conjecture:  ¬killed(agatha, agatha)                                 { negate_conjecture [11] }
+[38] plain:               ¬killed(agatha, agatha)                                 { cnf_transformation [37] }
+[39] plain:               ⊥                                                       { predicate_unit_simplification [36, 38] }

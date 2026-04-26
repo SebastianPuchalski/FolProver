@@ -1,0 +1,42 @@
+% SZS status Theorem for Problems/PUZ/PUZ001+1.p
+% SZS output start Proof
+fof(1, axiom, ?[X]: (lives(X) & killed(X, agatha)), file('Problems/PUZ/PUZ001+1.p', pel55_1)).
+fof(2, axiom, ![X]: (lives(X) => X = agatha | X = butler | X = charles), file('Problems/PUZ/PUZ001+1.p', pel55_3)).
+fof(3, axiom, ![X]: ![Y]: (killed(X, Y) => hates(X, Y)), file('Problems/PUZ/PUZ001+1.p', pel55_4)).
+fof(4, axiom, ![X]: (~(X = butler) => hates(agatha, X)), file('Problems/PUZ/PUZ001+1.p', pel55_7)).
+fof(5, axiom, ![X]: (hates(agatha, X) => ~hates(charles, X)), file('Problems/PUZ/PUZ001+1.p', pel55_6)).
+cnf(6, axiom, ~(agatha = butler), file('Problems/PUZ/PUZ001+1.p', pel55_11)).
+fof(7, axiom, ![X]: (~richer(X, agatha) => hates(butler, X)), file('Problems/PUZ/PUZ001+1.p', pel55_8)).
+fof(8, axiom, ![X]: ![Y]: (killed(X, Y) => ~richer(X, Y)), file('Problems/PUZ/PUZ001+1.p', pel55_5)).
+fof(9, axiom, ![X]: (hates(agatha, X) => hates(butler, X)), file('Problems/PUZ/PUZ001+1.p', pel55_9)).
+fof(10, axiom, ![X]: ?[Y]: ~hates(X, Y), file('Problems/PUZ/PUZ001+1.p', pel55_10)).
+cnf(11, conjecture, killed(agatha, agatha), file('Problems/PUZ/PUZ001+1.p', pel55)).
+cnf(12, plain, killed(sk1, agatha), inference(cnf_transformation, [], [1])).
+cnf(13, plain, lives(sk1), inference(cnf_transformation, [], [1])).
+cnf(14, plain, ~lives(X) | X = agatha | X = butler | X = charles, inference(cnf_transformation, [], [2])).
+cnf(15, plain, sk1 = agatha | sk1 = butler | sk1 = charles, inference(resolution, [], [13, 14])).
+cnf(16, plain, ~killed(X, Y) | hates(X, Y), inference(cnf_transformation, [], [3])).
+cnf(17, plain, hates(sk1, agatha), inference(resolution, [], [12, 16])).
+cnf(18, plain, sk1 = agatha | sk1 = butler | hates(charles, agatha), inference(superposition, [], [15, 17])).
+cnf(19, plain, X = butler | hates(agatha, X), inference(cnf_transformation, [], [4])).
+cnf(20, plain, ~hates(agatha, X) | ~hates(charles, X), inference(cnf_transformation, [], [5])).
+cnf(21, plain, V11 = butler | ~hates(charles, V11), inference(resolution, [], [19, 20])).
+cnf(22, plain, sk1 = agatha | sk1 = butler | agatha = butler, inference(resolution, [], [18, 21])).
+cnf(23, plain, ~(agatha = butler), inference(cnf_transformation, [], [6])).
+cnf(24, plain, sk1 = agatha | sk1 = butler, inference(negative_simplify-reflect, [], [22, 23])).
+cnf(25, plain, richer(X, agatha) | hates(butler, X), inference(cnf_transformation, [], [7])).
+cnf(26, plain, ~killed(X, Y) | ~richer(X, Y), inference(cnf_transformation, [], [8])).
+cnf(27, plain, ~richer(sk1, agatha), inference(resolution, [], [12, 26])).
+cnf(28, plain, hates(butler, sk1), inference(resolution, [], [25, 27])).
+cnf(29, plain, sk1 = agatha | hates(butler, butler), inference(superposition, [], [24, 28])).
+cnf(30, plain, ~hates(agatha, X) | hates(butler, X), inference(cnf_transformation, [], [9])).
+cnf(31, plain, ~hates(X, sk2(X)), inference(cnf_transformation, [], [10])).
+cnf(32, plain, ~hates(agatha, sk2(butler)), inference(resolution, [], [30, 31])).
+cnf(33, plain, sk2(butler) = butler, inference(resolution, [], [19, 32])).
+cnf(34, plain, ~hates(butler, butler), inference(superposition, [], [33, 31])).
+cnf(35, plain, sk1 = agatha, inference(predicate_unit_simplification, [], [29, 34])).
+cnf(36, plain, killed(agatha, agatha), inference(demodulation, [], [12, 35])).
+cnf(37, negated_conjecture, ~killed(agatha, agatha), inference(negate_conjecture, [], [11])).
+cnf(38, plain, ~killed(agatha, agatha), inference(cnf_transformation, [], [37])).
+cnf(39, plain, $false, inference(predicate_unit_simplification, [], [36, 38])).
+% SZS output end Proof

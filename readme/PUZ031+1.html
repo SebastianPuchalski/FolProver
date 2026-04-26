@@ -1,0 +1,760 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proof Visualization</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --border: 1px solid #dee2e6;
+            --bg-hover: #f8f9fa;
+            --bg-highlight: #fff3cd;
+            --clr-text: #212529;
+            --clr-meta: #4c555d;
+            --clr-link: #0d6efd;
+            --font-main: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--clr-text);
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .proof-container {
+            border: var(--border);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: fit-content;
+            max-width: 98%;
+            margin: 0 auto;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .proof-title {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-bottom: var(--border);
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .proof-body-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .proof-body {
+            display: grid;
+            grid-template-columns: max-content max-content minmax(300px, 1fr) max-content;
+        }
+
+        .proof-row { display: contents; }
+
+        .proof-row > div {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+        }
+
+        .row-hover > div { background-color: var(--bg-hover); }
+        .row-highlight > div { background-color: var(--bg-highlight); transition: background 0.2s; }
+
+        .col-id {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--clr-meta);
+            border-right: 1px solid #eee;
+            justify-content: flex-end;
+            white-space: nowrap;
+        }
+
+        .col-role { justify-content: center; padding-left: 15px; padding-right: 15px; }
+
+        .col-formula {
+            font-family: 'Latin Modern Math', 'Cambria Math', serif;
+            font-size: 1.15em;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .col-formula::-webkit-scrollbar { height: 4px; }
+        .col-formula::-webkit-scrollbar-thumb { background: #ccc; }
+
+        .col-source {
+            border-left: 1px solid #eee;
+            font-size: 0.9em;
+            color: var(--clr-meta);
+            white-space: nowrap;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        .col-source a { color: var(--clr-link); }
+        .col-id a { color: inherit; text-decoration: none; cursor: pointer; }
+        .col-id a:hover { text-decoration: underline; color: #000; }
+        .col-source a:hover { text-decoration: underline; }
+
+        .src-file { color: #806060; }
+        .src-name { color: #402020; font-weight: normal; }
+        .src-rule { color: #003366; font-weight: normal; }
+        .src-parents { color: #888; margin-left: 5px; }
+
+        /* --- ROLE STYLES --- */
+        .role-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: lowercase;
+            font-variant: small-caps;
+        }
+        
+        /* Group 1: Base Truths & Definitions (Dark Green) */
+        .role-axiom, .role-hypothesis, 
+        .role-definition, .role-assumption, 
+        .role-lemma, .role-theorem { 
+            color: #198754; 
+        }
+        
+        /* Group 2: Conflicts & Goals (Red/Orange) */
+        .role-negated_conjecture { color: #d32f2f; }
+        .role-conjecture { color: #e65100; }
+        
+        /* Group 3: Steps & Technical (Subtle Grey) */
+        .role-plain, .role-unknown, 
+        .role-type, .role-fi_domain, .role-fi_functors, .role-fi_predicates { 
+            color: #8d8d8d; 
+            font-weight: 500; 
+        }
+        
+        @media (max-width: 800px) {
+             .proof-body { grid-template-columns: 1fr; }
+             .proof-row { display: flex; flex-direction: column; border-bottom: 4px solid #eee; }
+             .proof-row > div { border: none; width: 100%; justify-content: flex-start; padding: 4px 10px; }
+             .col-id { border-right: none; }
+             .col-source { border-left: none; }
+             .col-formula { white-space: normal; overflow-x: visible; }
+        }
+    </style>
+</head>
+<body>
+    <div class="proof-container">
+        <div class="proof-title">Proof</div>
+        <div class="proof-body-wrapper">
+            <div class="proof-body">
+<div class='proof-row' id='n1' data-parents=''>
+  <div class='col-id'><a href='#n1'>1</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \exists \mathit{X}\, \mathrm{grain}(\mathit{X}) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_6_1</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n2' data-parents=''>
+  <div class='col-id'><a href='#n2'>2</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X1}\, \left(\mathrm{grain}(\mathit{X1}) \to \mathrm{plant}(\mathit{X1})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_6_2</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n3' data-parents=''>
+  <div class='col-id'><a href='#n3'>3</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \exists \mathit{X1}\, \mathrm{wolf}(\mathit{X1}) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_1_2</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n4' data-parents=''>
+  <div class='col-id'><a href='#n4'>4</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \exists \mathit{X1}\, \mathrm{fox}(\mathit{X1}) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_2_2</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n5' data-parents=''>
+  <div class='col-id'><a href='#n5'>5</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \exists \mathit{X1}\, \mathrm{snail}(\mathit{X1}) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_5_2</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n6' data-parents=''>
+  <div class='col-id'><a href='#n6'>6</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{caterpillar}(\mathit{X}) \lor \mathrm{snail}(\mathit{X}) \to \exists \mathit{Y}\, \left(\mathrm{plant}(\mathit{Y}) \land \mathrm{eats}(\mathit{X}, \mathit{Y})\right)\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_14</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n7' data-parents=''>
+  <div class='col-id'><a href='#n7'>7</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \exists \mathit{X1}\, \mathrm{bird}(\mathit{X1}) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_3_2</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n8' data-parents=''>
+  <div class='col-id'><a href='#n8'>8</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{bird}(\mathit{Y}) \land \left(\mathrm{snail}(\mathit{X}) \lor \mathrm{caterpillar}(\mathit{X})\right) \to \mathrm{much\_smaller}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_8</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n9' data-parents=''>
+  <div class='col-id'><a href='#n9'>9</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{animal}(\mathit{X}) \to \forall \mathit{Y}\, \left(\mathrm{plant}(\mathit{Y}) \to \mathrm{eats}(\mathit{X}, \mathit{Y})\right) \lor \forall \mathit{Y1}\, \left(\mathrm{animal}(\mathit{Y1}) \land \mathrm{much\_smaller}(\mathit{Y1}, \mathit{X}) \land \exists \mathit{Z}\, \left(\mathrm{plant}(\mathit{Z}) \land \mathrm{eats}(\mathit{Y1}, \mathit{Z})\right) \to \mathrm{eats}(\mathit{X}, \mathit{Y1})\right)\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_7</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n10' data-parents=''>
+  <div class='col-id'><a href='#n10'>10</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{snail}(\mathit{X}) \to \mathrm{animal}(\mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_5_1</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n11' data-parents=''>
+  <div class='col-id'><a href='#n11'>11</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{bird}(\mathit{X}) \to \mathrm{animal}(\mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_3_1</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n12' data-parents=''>
+  <div class='col-id'><a href='#n12'>12</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{bird}(\mathit{X}) \land \mathrm{fox}(\mathit{Y}) \to \mathrm{much\_smaller}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_9</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n13' data-parents=''>
+  <div class='col-id'><a href='#n13'>13</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{fox}(\mathit{X}) \to \mathrm{animal}(\mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_2_1</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n14' data-parents=''>
+  <div class='col-id'><a href='#n14'>14</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{bird}(\mathit{X}) \land \mathrm{snail}(\mathit{Y}) \to \neg \mathrm{eats}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_13</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n15' data-parents=''>
+  <div class='col-id'><a href='#n15'>15</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{fox}(\mathit{X}) \land \mathrm{wolf}(\mathit{Y}) \to \mathrm{much\_smaller}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_10</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n16' data-parents=''>
+  <div class='col-id'><a href='#n16'>16</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \left(\mathrm{wolf}(\mathit{X}) \to \mathrm{animal}(\mathit{X})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_1_1</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n17' data-parents=''>
+  <div class='col-id'><a href='#n17'>17</a></div>
+  <div class='col-role'><span class='role-badge role-conjecture'>conjecture</span></div>
+  <div class='col-formula'>\( \exists \mathit{X}\, \exists \mathit{Y}\, \left(\mathrm{animal}(\mathit{X}) \land \mathrm{animal}(\mathit{Y}) \land \exists \mathit{Z}\, \left(\mathrm{grain}(\mathit{Z}) \land \mathrm{eats}(\mathit{Y}, \mathit{Z}) \land \mathrm{eats}(\mathit{X}, \mathit{Y})\right)\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n18' data-parents=''>
+  <div class='col-id'><a href='#n18'>18</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{X}\, \forall \mathit{Y}\, \left(\mathrm{wolf}(\mathit{X}) \land \left(\mathrm{fox}(\mathit{Y}) \lor \mathrm{grain}(\mathit{Y})\right) \to \neg \mathrm{eats}(\mathit{X}, \mathit{Y})\right) \)</div>
+  <div class='col-source'><span class='src-name'>pel47_11</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/PUZ/PUZ031+1.p</span></div>
+</div>
+<div class='proof-row' id='n19' data-parents='n1'>
+  <div class='col-id'><a href='#n19'>19</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{grain}(\mathrm{sk6}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n1'>1</a> ]</span></div>
+</div>
+<div class='proof-row' id='n20' data-parents='n2'>
+  <div class='col-id'><a href='#n20'>20</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{grain}(\mathit{X1}) \lor \mathrm{plant}(\mathit{X1}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n2'>2</a> ]</span></div>
+</div>
+<div class='proof-row' id='n21' data-parents='n3'>
+  <div class='col-id'><a href='#n21'>21</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{wolf}(\mathrm{sk1}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n3'>3</a> ]</span></div>
+</div>
+<div class='proof-row' id='n22' data-parents='n4'>
+  <div class='col-id'><a href='#n22'>22</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{fox}(\mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n4'>4</a> ]</span></div>
+</div>
+<div class='proof-row' id='n23' data-parents='n5'>
+  <div class='col-id'><a href='#n23'>23</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{snail}(\mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n5'>5</a> ]</span></div>
+</div>
+<div class='proof-row' id='n24' data-parents='n6'>
+  <div class='col-id'><a href='#n24'>24</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{snail}(\mathit{X}) \lor \mathrm{plant}(\mathrm{sk7}(\mathit{X})) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n6'>6</a> ]</span></div>
+</div>
+<div class='proof-row' id='n25' data-parents='n23 n24'>
+  <div class='col-id'><a href='#n25'>25</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{plant}(\mathrm{sk7}(\mathrm{sk5})) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n23'>23</a>, <a href='#n24'>24</a> ]</span></div>
+</div>
+<div class='proof-row' id='n26' data-parents='n7'>
+  <div class='col-id'><a href='#n26'>26</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{bird}(\mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n7'>7</a> ]</span></div>
+</div>
+<div class='proof-row' id='n27' data-parents='n6'>
+  <div class='col-id'><a href='#n27'>27</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{snail}(\mathit{X}) \lor \mathrm{eats}(\mathit{X}, \mathrm{sk7}(\mathit{X})) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n6'>6</a> ]</span></div>
+</div>
+<div class='proof-row' id='n28' data-parents='n8'>
+  <div class='col-id'><a href='#n28'>28</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{Y}) \lor \neg \mathrm{snail}(\mathit{X}) \lor \mathrm{much\_smaller}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n8'>8</a> ]</span></div>
+</div>
+<div class='proof-row' id='n29' data-parents='n9'>
+  <div class='col-id'><a href='#n29'>29</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{animal}(\mathit{X}) \lor \neg \mathrm{plant}(\mathit{Y}) \lor \mathrm{eats}(\mathit{X}, \mathit{Y}) \lor \neg \mathrm{animal}(\mathit{Y1}) \lor \neg \mathrm{much\_smaller}(\mathit{Y1}, \mathit{X}) \lor \neg \mathrm{plant}(\mathit{Z}) \lor \neg \mathrm{eats}(\mathit{Y1}, \mathit{Z}) \lor \mathrm{eats}(\mathit{X}, \mathit{Y1}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n9'>9</a> ]</span></div>
+</div>
+<div class='proof-row' id='n30' data-parents='n28 n29'>
+  <div class='col-id'><a href='#n30'>30</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{V34}) \lor \neg \mathrm{snail}(\mathit{V35}) \lor \neg \mathrm{animal}(\mathit{V34}) \lor \neg \mathrm{plant}(\mathit{V36}) \lor \mathrm{eats}(\mathit{V34}, \mathit{V36}) \lor \neg \mathrm{animal}(\mathit{V35}) \lor \neg \mathrm{plant}(\mathit{V37}) \lor \neg \mathrm{eats}(\mathit{V35}, \mathit{V37}) \lor \mathrm{eats}(\mathit{V34}, \mathit{V35}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n28'>28</a>, <a href='#n29'>29</a> ]</span></div>
+</div>
+<div class='proof-row' id='n31' data-parents='n27 n30'>
+  <div class='col-id'><a href='#n31'>31</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{snail}(\mathit{V75}) \lor \neg \mathrm{bird}(\mathit{V76}) \lor \neg \mathrm{snail}(\mathit{V75}) \lor \neg \mathrm{animal}(\mathit{V76}) \lor \neg \mathrm{plant}(\mathit{V77}) \lor \mathrm{eats}(\mathit{V76}, \mathit{V77}) \lor \neg \mathrm{animal}(\mathit{V75}) \lor \neg \mathrm{plant}(\mathrm{sk7}(\mathit{V75})) \lor \mathrm{eats}(\mathit{V76}, \mathit{V75}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n27'>27</a>, <a href='#n30'>30</a> ]</span></div>
+</div>
+<div class='proof-row' id='n32' data-parents='n31'>
+  <div class='col-id'><a href='#n32'>32</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{snail}(\mathit{V75}) \lor \neg \mathrm{bird}(\mathit{V76}) \lor \neg \mathrm{animal}(\mathit{V76}) \lor \neg \mathrm{plant}(\mathit{V77}) \lor \mathrm{eats}(\mathit{V76}, \mathit{V77}) \lor \neg \mathrm{animal}(\mathit{V75}) \lor \neg \mathrm{plant}(\mathrm{sk7}(\mathit{V75})) \lor \mathrm{eats}(\mathit{V76}, \mathit{V75}) \)</div>
+  <div class='col-source'><span class='src-rule'>deletion_of_duplicate_literals</span> <span class='src-parents'>[ <a href='#n31'>31</a> ]</span></div>
+</div>
+<div class='proof-row' id='n33' data-parents='n25 n32'>
+  <div class='col-id'><a href='#n33'>33</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{snail}(\mathrm{sk5}) \lor \neg \mathrm{bird}(\mathit{V105}) \lor \neg \mathrm{animal}(\mathit{V105}) \lor \neg \mathrm{plant}(\mathit{V106}) \lor \mathrm{eats}(\mathit{V105}, \mathit{V106}) \lor \neg \mathrm{animal}(\mathrm{sk5}) \lor \mathrm{eats}(\mathit{V105}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n25'>25</a>, <a href='#n32'>32</a> ]</span></div>
+</div>
+<div class='proof-row' id='n34' data-parents='n33 n23'>
+  <div class='col-id'><a href='#n34'>34</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{V105}) \lor \neg \mathrm{animal}(\mathit{V105}) \lor \neg \mathrm{plant}(\mathit{V106}) \lor \mathrm{eats}(\mathit{V105}, \mathit{V106}) \lor \neg \mathrm{animal}(\mathrm{sk5}) \lor \mathrm{eats}(\mathit{V105}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n33'>33</a>, <a href='#n23'>23</a> ]</span></div>
+</div>
+<div class='proof-row' id='n35' data-parents='n10'>
+  <div class='col-id'><a href='#n35'>35</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{snail}(\mathit{X}) \lor \mathrm{animal}(\mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n10'>10</a> ]</span></div>
+</div>
+<div class='proof-row' id='n36' data-parents='n23 n35'>
+  <div class='col-id'><a href='#n36'>36</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{animal}(\mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n23'>23</a>, <a href='#n35'>35</a> ]</span></div>
+</div>
+<div class='proof-row' id='n37' data-parents='n34 n36'>
+  <div class='col-id'><a href='#n37'>37</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{V105}) \lor \neg \mathrm{animal}(\mathit{V105}) \lor \neg \mathrm{plant}(\mathit{V106}) \lor \mathrm{eats}(\mathit{V105}, \mathit{V106}) \lor \mathrm{eats}(\mathit{V105}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n34'>34</a>, <a href='#n36'>36</a> ]</span></div>
+</div>
+<div class='proof-row' id='n38' data-parents='n26 n37'>
+  <div class='col-id'><a href='#n38'>38</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{animal}(\mathrm{sk3}) \lor \neg \mathrm{plant}(\mathit{V110}) \lor \mathrm{eats}(\mathrm{sk3}, \mathit{V110}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n26'>26</a>, <a href='#n37'>37</a> ]</span></div>
+</div>
+<div class='proof-row' id='n39' data-parents='n11'>
+  <div class='col-id'><a href='#n39'>39</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{X}) \lor \mathrm{animal}(\mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n11'>11</a> ]</span></div>
+</div>
+<div class='proof-row' id='n40' data-parents='n26 n39'>
+  <div class='col-id'><a href='#n40'>40</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{animal}(\mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n26'>26</a>, <a href='#n39'>39</a> ]</span></div>
+</div>
+<div class='proof-row' id='n41' data-parents='n38 n40'>
+  <div class='col-id'><a href='#n41'>41</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{plant}(\mathit{V110}) \lor \mathrm{eats}(\mathrm{sk3}, \mathit{V110}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n38'>38</a>, <a href='#n40'>40</a> ]</span></div>
+</div>
+<div class='proof-row' id='n42' data-parents='n25 n41'>
+  <div class='col-id'><a href='#n42'>42</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk7}(\mathrm{sk5})) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n25'>25</a>, <a href='#n41'>41</a> ]</span></div>
+</div>
+<div class='proof-row' id='n43' data-parents='n12'>
+  <div class='col-id'><a href='#n43'>43</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{X}) \lor \neg \mathrm{fox}(\mathit{Y}) \lor \mathrm{much\_smaller}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n12'>12</a> ]</span></div>
+</div>
+<div class='proof-row' id='n44' data-parents='n43 n29'>
+  <div class='col-id'><a href='#n44'>44</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{V42}) \lor \neg \mathrm{fox}(\mathit{V43}) \lor \neg \mathrm{animal}(\mathit{V43}) \lor \neg \mathrm{plant}(\mathit{V44}) \lor \mathrm{eats}(\mathit{V43}, \mathit{V44}) \lor \neg \mathrm{animal}(\mathit{V42}) \lor \neg \mathrm{plant}(\mathit{V45}) \lor \neg \mathrm{eats}(\mathit{V42}, \mathit{V45}) \lor \mathrm{eats}(\mathit{V43}, \mathit{V42}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n43'>43</a>, <a href='#n29'>29</a> ]</span></div>
+</div>
+<div class='proof-row' id='n45' data-parents='n42 n44'>
+  <div class='col-id'><a href='#n45'>45</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{bird}(\mathrm{sk3}) \lor \neg \mathrm{fox}(\mathit{V127}) \lor \neg \mathrm{animal}(\mathit{V127}) \lor \neg \mathrm{plant}(\mathit{V128}) \lor \mathrm{eats}(\mathit{V127}, \mathit{V128}) \lor \neg \mathrm{animal}(\mathrm{sk3}) \lor \neg \mathrm{plant}(\mathrm{sk7}(\mathrm{sk5})) \lor \mathrm{eats}(\mathit{V127}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n42'>42</a>, <a href='#n44'>44</a> ]</span></div>
+</div>
+<div class='proof-row' id='n46' data-parents='n45 n26'>
+  <div class='col-id'><a href='#n46'>46</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{fox}(\mathit{V127}) \lor \neg \mathrm{animal}(\mathit{V127}) \lor \neg \mathrm{plant}(\mathit{V128}) \lor \mathrm{eats}(\mathit{V127}, \mathit{V128}) \lor \neg \mathrm{animal}(\mathrm{sk3}) \lor \neg \mathrm{plant}(\mathrm{sk7}(\mathrm{sk5})) \lor \mathrm{eats}(\mathit{V127}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n45'>45</a>, <a href='#n26'>26</a> ]</span></div>
+</div>
+<div class='proof-row' id='n47' data-parents='n46 n40'>
+  <div class='col-id'><a href='#n47'>47</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{fox}(\mathit{V127}) \lor \neg \mathrm{animal}(\mathit{V127}) \lor \neg \mathrm{plant}(\mathit{V128}) \lor \mathrm{eats}(\mathit{V127}, \mathit{V128}) \lor \neg \mathrm{plant}(\mathrm{sk7}(\mathrm{sk5})) \lor \mathrm{eats}(\mathit{V127}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n46'>46</a>, <a href='#n40'>40</a> ]</span></div>
+</div>
+<div class='proof-row' id='n48' data-parents='n47 n25'>
+  <div class='col-id'><a href='#n48'>48</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{fox}(\mathit{V127}) \lor \neg \mathrm{animal}(\mathit{V127}) \lor \neg \mathrm{plant}(\mathit{V128}) \lor \mathrm{eats}(\mathit{V127}, \mathit{V128}) \lor \mathrm{eats}(\mathit{V127}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n47'>47</a>, <a href='#n25'>25</a> ]</span></div>
+</div>
+<div class='proof-row' id='n49' data-parents='n22 n48'>
+  <div class='col-id'><a href='#n49'>49</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{animal}(\mathrm{sk2}) \lor \neg \mathrm{plant}(\mathit{V245}) \lor \mathrm{eats}(\mathrm{sk2}, \mathit{V245}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n22'>22</a>, <a href='#n48'>48</a> ]</span></div>
+</div>
+<div class='proof-row' id='n50' data-parents='n13'>
+  <div class='col-id'><a href='#n50'>50</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{fox}(\mathit{X}) \lor \mathrm{animal}(\mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n13'>13</a> ]</span></div>
+</div>
+<div class='proof-row' id='n51' data-parents='n22 n50'>
+  <div class='col-id'><a href='#n51'>51</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{animal}(\mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n22'>22</a>, <a href='#n50'>50</a> ]</span></div>
+</div>
+<div class='proof-row' id='n52' data-parents='n49 n51'>
+  <div class='col-id'><a href='#n52'>52</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{plant}(\mathit{V245}) \lor \mathrm{eats}(\mathrm{sk2}, \mathit{V245}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n49'>49</a>, <a href='#n51'>51</a> ]</span></div>
+</div>
+<div class='proof-row' id='n53' data-parents='n20 n52'>
+  <div class='col-id'><a href='#n53'>53</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{grain}(\mathit{V246}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \mathrm{eats}(\mathrm{sk2}, \mathit{V246}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n20'>20</a>, <a href='#n52'>52</a> ]</span></div>
+</div>
+<div class='proof-row' id='n54' data-parents='n19 n53'>
+  <div class='col-id'><a href='#n54'>54</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n53'>53</a> ]</span></div>
+</div>
+<div class='proof-row' id='n55' data-parents='n14'>
+  <div class='col-id'><a href='#n55'>55</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{bird}(\mathit{X}) \lor \neg \mathrm{snail}(\mathit{Y}) \lor \neg \mathrm{eats}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n14'>14</a> ]</span></div>
+</div>
+<div class='proof-row' id='n56' data-parents='n54 n55'>
+  <div class='col-id'><a href='#n56'>56</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{bird}(\mathrm{sk3}) \lor \neg \mathrm{snail}(\mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n54'>54</a>, <a href='#n55'>55</a> ]</span></div>
+</div>
+<div class='proof-row' id='n57' data-parents='n56 n26'>
+  <div class='col-id'><a href='#n57'>57</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{snail}(\mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n56'>56</a>, <a href='#n26'>26</a> ]</span></div>
+</div>
+<div class='proof-row' id='n58' data-parents='n57 n23'>
+  <div class='col-id'><a href='#n58'>58</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n57'>57</a>, <a href='#n23'>23</a> ]</span></div>
+</div>
+<div class='proof-row' id='n59' data-parents='n15'>
+  <div class='col-id'><a href='#n59'>59</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{fox}(\mathit{X}) \lor \neg \mathrm{wolf}(\mathit{Y}) \lor \mathrm{much\_smaller}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n15'>15</a> ]</span></div>
+</div>
+<div class='proof-row' id='n60' data-parents='n59 n29'>
+  <div class='col-id'><a href='#n60'>60</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{fox}(\mathit{V46}) \lor \neg \mathrm{wolf}(\mathit{V47}) \lor \neg \mathrm{animal}(\mathit{V47}) \lor \neg \mathrm{plant}(\mathit{V48}) \lor \mathrm{eats}(\mathit{V47}, \mathit{V48}) \lor \neg \mathrm{animal}(\mathit{V46}) \lor \neg \mathrm{plant}(\mathit{V49}) \lor \neg \mathrm{eats}(\mathit{V46}, \mathit{V49}) \lor \mathrm{eats}(\mathit{V47}, \mathit{V46}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n59'>59</a>, <a href='#n29'>29</a> ]</span></div>
+</div>
+<div class='proof-row' id='n61' data-parents='n58 n60'>
+  <div class='col-id'><a href='#n61'>61</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{fox}(\mathrm{sk2}) \lor \neg \mathrm{wolf}(\mathit{V270}) \lor \neg \mathrm{animal}(\mathit{V270}) \lor \neg \mathrm{plant}(\mathit{V271}) \lor \mathrm{eats}(\mathit{V270}, \mathit{V271}) \lor \neg \mathrm{animal}(\mathrm{sk2}) \lor \neg \mathrm{plant}(\mathrm{sk6}) \lor \mathrm{eats}(\mathit{V270}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n58'>58</a>, <a href='#n60'>60</a> ]</span></div>
+</div>
+<div class='proof-row' id='n62' data-parents='n61 n22'>
+  <div class='col-id'><a href='#n62'>62</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{wolf}(\mathit{V270}) \lor \neg \mathrm{animal}(\mathit{V270}) \lor \neg \mathrm{plant}(\mathit{V271}) \lor \mathrm{eats}(\mathit{V270}, \mathit{V271}) \lor \neg \mathrm{animal}(\mathrm{sk2}) \lor \neg \mathrm{plant}(\mathrm{sk6}) \lor \mathrm{eats}(\mathit{V270}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n61'>61</a>, <a href='#n22'>22</a> ]</span></div>
+</div>
+<div class='proof-row' id='n63' data-parents='n62 n51'>
+  <div class='col-id'><a href='#n63'>63</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{wolf}(\mathit{V270}) \lor \neg \mathrm{animal}(\mathit{V270}) \lor \neg \mathrm{plant}(\mathit{V271}) \lor \mathrm{eats}(\mathit{V270}, \mathit{V271}) \lor \neg \mathrm{plant}(\mathrm{sk6}) \lor \mathrm{eats}(\mathit{V270}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n62'>62</a>, <a href='#n51'>51</a> ]</span></div>
+</div>
+<div class='proof-row' id='n64' data-parents='n20 n63'>
+  <div class='col-id'><a href='#n64'>64</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{grain}(\mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{wolf}(\mathit{V321}) \lor \neg \mathrm{animal}(\mathit{V321}) \lor \neg \mathrm{plant}(\mathit{V322}) \lor \mathrm{eats}(\mathit{V321}, \mathit{V322}) \lor \mathrm{eats}(\mathit{V321}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n20'>20</a>, <a href='#n63'>63</a> ]</span></div>
+</div>
+<div class='proof-row' id='n65' data-parents='n64 n19'>
+  <div class='col-id'><a href='#n65'>65</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{wolf}(\mathit{V321}) \lor \neg \mathrm{animal}(\mathit{V321}) \lor \neg \mathrm{plant}(\mathit{V322}) \lor \mathrm{eats}(\mathit{V321}, \mathit{V322}) \lor \mathrm{eats}(\mathit{V321}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n64'>64</a>, <a href='#n19'>19</a> ]</span></div>
+</div>
+<div class='proof-row' id='n66' data-parents='n21 n65'>
+  <div class='col-id'><a href='#n66'>66</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{animal}(\mathrm{sk1}) \lor \neg \mathrm{plant}(\mathit{V323}) \lor \mathrm{eats}(\mathrm{sk1}, \mathit{V323}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n21'>21</a>, <a href='#n65'>65</a> ]</span></div>
+</div>
+<div class='proof-row' id='n67' data-parents='n16'>
+  <div class='col-id'><a href='#n67'>67</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{wolf}(\mathit{X}) \lor \mathrm{animal}(\mathit{X}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n16'>16</a> ]</span></div>
+</div>
+<div class='proof-row' id='n68' data-parents='n21 n67'>
+  <div class='col-id'><a href='#n68'>68</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{animal}(\mathrm{sk1}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n21'>21</a>, <a href='#n67'>67</a> ]</span></div>
+</div>
+<div class='proof-row' id='n69' data-parents='n66 n68'>
+  <div class='col-id'><a href='#n69'>69</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \neg \mathrm{plant}(\mathit{V323}) \lor \mathrm{eats}(\mathrm{sk1}, \mathit{V323}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n66'>66</a>, <a href='#n68'>68</a> ]</span></div>
+</div>
+<div class='proof-row' id='n70' data-parents='n20 n69'>
+  <div class='col-id'><a href='#n70'>70</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{grain}(\mathit{V324}) \lor \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \mathrm{eats}(\mathrm{sk1}, \mathit{V324}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n20'>20</a>, <a href='#n69'>69</a> ]</span></div>
+</div>
+<div class='proof-row' id='n71' data-parents='n19 n70'>
+  <div class='col-id'><a href='#n71'>71</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk2}, \mathrm{sk3}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n70'>70</a> ]</span></div>
+</div>
+<div class='proof-row' id='n72' data-parents='n20 n41'>
+  <div class='col-id'><a href='#n72'>72</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{grain}(\mathit{V121}) \lor \mathrm{eats}(\mathrm{sk3}, \mathit{V121}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n20'>20</a>, <a href='#n41'>41</a> ]</span></div>
+</div>
+<div class='proof-row' id='n73' data-parents='n19 n72'>
+  <div class='col-id'><a href='#n73'>73</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n72'>72</a> ]</span></div>
+</div>
+<div class='proof-row' id='n74' data-parents='n17'>
+  <div class='col-id'><a href='#n74'>74</a></div>
+  <div class='col-role'><span class='role-badge role-negated_conjecture'>negated_conjecture</span></div>
+  <div class='col-formula'>\( \neg \exists \mathit{X}\, \exists \mathit{Y}\, \left(\mathrm{animal}(\mathit{X}) \land \mathrm{animal}(\mathit{Y}) \land \exists \mathit{Z}\, \left(\mathrm{grain}(\mathit{Z}) \land \mathrm{eats}(\mathit{Y}, \mathit{Z}) \land \mathrm{eats}(\mathit{X}, \mathit{Y})\right)\right) \)</div>
+  <div class='col-source'><span class='src-rule'>negate_conjecture</span> <span class='src-parents'>[ <a href='#n17'>17</a> ]</span></div>
+</div>
+<div class='proof-row' id='n75' data-parents='n74'>
+  <div class='col-id'><a href='#n75'>75</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{animal}(\mathit{X}) \lor \neg \mathrm{animal}(\mathit{Y}) \lor \neg \mathrm{grain}(\mathit{Z}) \lor \neg \mathrm{eats}(\mathit{Y}, \mathit{Z}) \lor \neg \mathrm{eats}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n74'>74</a> ]</span></div>
+</div>
+<div class='proof-row' id='n76' data-parents='n73 n75'>
+  <div class='col-id'><a href='#n76'>76</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{animal}(\mathit{V142}) \lor \neg \mathrm{animal}(\mathrm{sk3}) \lor \neg \mathrm{grain}(\mathrm{sk6}) \lor \neg \mathrm{eats}(\mathit{V142}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n73'>73</a>, <a href='#n75'>75</a> ]</span></div>
+</div>
+<div class='proof-row' id='n77' data-parents='n76 n19'>
+  <div class='col-id'><a href='#n77'>77</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{animal}(\mathit{V142}) \lor \neg \mathrm{animal}(\mathrm{sk3}) \lor \neg \mathrm{eats}(\mathit{V142}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n76'>76</a>, <a href='#n19'>19</a> ]</span></div>
+</div>
+<div class='proof-row' id='n78' data-parents='n77 n40'>
+  <div class='col-id'><a href='#n78'>78</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{animal}(\mathit{V142}) \lor \neg \mathrm{eats}(\mathit{V142}, \mathrm{sk3}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n77'>77</a>, <a href='#n40'>40</a> ]</span></div>
+</div>
+<div class='proof-row' id='n79' data-parents='n71 n78'>
+  <div class='col-id'><a href='#n79'>79</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \lor \neg \mathrm{animal}(\mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n71'>71</a>, <a href='#n78'>78</a> ]</span></div>
+</div>
+<div class='proof-row' id='n80' data-parents='n79 n51'>
+  <div class='col-id'><a href='#n80'>80</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \lor \mathrm{eats}(\mathrm{sk3}, \mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n79'>79</a>, <a href='#n51'>51</a> ]</span></div>
+</div>
+<div class='proof-row' id='n81' data-parents='n80 n55'>
+  <div class='col-id'><a href='#n81'>81</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \lor \neg \mathrm{bird}(\mathrm{sk3}) \lor \neg \mathrm{snail}(\mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n80'>80</a>, <a href='#n55'>55</a> ]</span></div>
+</div>
+<div class='proof-row' id='n82' data-parents='n81 n26'>
+  <div class='col-id'><a href='#n82'>82</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \lor \neg \mathrm{snail}(\mathrm{sk5}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n81'>81</a>, <a href='#n26'>26</a> ]</span></div>
+</div>
+<div class='proof-row' id='n83' data-parents='n82 n23'>
+  <div class='col-id'><a href='#n83'>83</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk6}) \lor \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n82'>82</a>, <a href='#n23'>23</a> ]</span></div>
+</div>
+<div class='proof-row' id='n84' data-parents='n18'>
+  <div class='col-id'><a href='#n84'>84</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{wolf}(\mathit{X}) \lor \neg \mathrm{grain}(\mathit{Y}) \lor \neg \mathrm{eats}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n18'>18</a> ]</span></div>
+</div>
+<div class='proof-row' id='n85' data-parents='n83 n84'>
+  <div class='col-id'><a href='#n85'>85</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \lor \neg \mathrm{wolf}(\mathrm{sk1}) \lor \neg \mathrm{grain}(\mathrm{sk6}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n83'>83</a>, <a href='#n84'>84</a> ]</span></div>
+</div>
+<div class='proof-row' id='n86' data-parents='n85 n21'>
+  <div class='col-id'><a href='#n86'>86</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \lor \neg \mathrm{grain}(\mathrm{sk6}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n85'>85</a>, <a href='#n21'>21</a> ]</span></div>
+</div>
+<div class='proof-row' id='n87' data-parents='n86 n19'>
+  <div class='col-id'><a href='#n87'>87</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{eats}(\mathrm{sk1}, \mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n86'>86</a>, <a href='#n19'>19</a> ]</span></div>
+</div>
+<div class='proof-row' id='n88' data-parents='n18'>
+  <div class='col-id'><a href='#n88'>88</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{wolf}(\mathit{X}) \lor \neg \mathrm{fox}(\mathit{Y}) \lor \neg \mathrm{eats}(\mathit{X}, \mathit{Y}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n18'>18</a> ]</span></div>
+</div>
+<div class='proof-row' id='n89' data-parents='n87 n88'>
+  <div class='col-id'><a href='#n89'>89</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{wolf}(\mathrm{sk1}) \lor \neg \mathrm{fox}(\mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n87'>87</a>, <a href='#n88'>88</a> ]</span></div>
+</div>
+<div class='proof-row' id='n90' data-parents='n89 n21'>
+  <div class='col-id'><a href='#n90'>90</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{fox}(\mathrm{sk2}) \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n89'>89</a>, <a href='#n21'>21</a> ]</span></div>
+</div>
+<div class='proof-row' id='n91' data-parents='n90 n22'>
+  <div class='col-id'><a href='#n91'>91</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \bot \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n90'>90</a>, <a href='#n22'>22</a> ]</span></div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Scroll handling for display: contents
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetRow = document.getElementById(targetId);
+                
+                if (targetRow) {
+                    const firstChild = targetRow.firstElementChild;
+                    if (firstChild) {
+                        firstChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        highlightRow(targetId, 'row-hover');
+                        setTimeout(() => unhighlightRow(targetId, 'row-hover'), 1500);
+                    }
+                }
+            });
+        });
+
+        const rows = document.querySelectorAll('.proof-row');
+
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                const id = row.id;
+                highlightRow(id, 'row-hover');
+                const parents = row.getAttribute('data-parents');
+                if (parents) {
+                    parents.split(' ').forEach(pid => highlightRow(pid, 'row-highlight'));
+                }
+            });
+
+            row.addEventListener('mouseleave', () => {
+                const id = row.id;
+                unhighlightRow(id, 'row-hover');
+                const parents = row.getAttribute('data-parents');
+                if (parents) {
+                    parents.split(' ').forEach(pid => unhighlightRow(pid, 'row-highlight'));
+                }
+            });
+        });
+
+        function highlightRow(id, className) {
+            if (!id) return;
+            const row = document.getElementById(id);
+            if (row) row.classList.add(className);
+        }
+
+        function unhighlightRow(id, className) {
+            if (!id) return;
+            const row = document.getElementById(id);
+            if (row) row.classList.remove(className);
+        }
+    });
+</script>
+</body>
+</html>

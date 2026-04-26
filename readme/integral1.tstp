@@ -1,0 +1,24 @@
+% SZS status Unsatisfiable for AnsTasks/zad16d.p
+% SZS output start Proof
+cnf(1, negated_conjecture, ~(d(Y, x) = mul(exp(mul(x, ln(x))), add(ln(x), 1))) | ans(Y), file('AnsTasks/zad16d.p', query)).
+cnf(2, axiom, mul(X, div(1, X)) = 1, file('AnsTasks/zad16d.p', mul_inv)).
+cnf(3, axiom, d(ln(X), X) = div(1, X), file('AnsTasks/zad16d.p', diff_ln)).
+cnf(4, axiom, d(X, X) = 1, file('AnsTasks/zad16d.p', diff_var)).
+cnf(5, axiom, d(mul(U, V), X) = add(mul(d(U, X), V), mul(U, d(V, X))), file('AnsTasks/zad16d.p', diff_mul)).
+cnf(6, axiom, mul(1, X) = X, file('AnsTasks/zad16d.p', mul_1_l)).
+cnf(7, axiom, d(exp(U), X) = mul(exp(U), d(U, X)), file('AnsTasks/zad16d.p', diff_exp_chain)).
+cnf(8, plain, ~(d(Y, x) = mul(exp(mul(x, ln(x))), add(ln(x), 1))) | ans(Y), inference(cnf_transformation, [], [1])).
+cnf(9, plain, mul(X, div(1, X)) = 1, inference(cnf_transformation, [], [2])).
+cnf(10, plain, d(ln(X), X) = div(1, X), inference(cnf_transformation, [], [3])).
+cnf(11, plain, mul(V9, d(ln(V9), V9)) = 1, inference(demodulation, [], [9, 10])).
+cnf(12, plain, d(X, X) = 1, inference(cnf_transformation, [], [4])).
+cnf(13, plain, d(mul(U, V), X) = add(mul(d(U, X), V), mul(U, d(V, X))), inference(cnf_transformation, [], [5])).
+cnf(14, plain, d(mul(V17, V18), V17) = add(mul(1, V18), mul(V17, d(V18, V17))), inference(superposition, [], [12, 13])).
+cnf(15, plain, mul(1, X) = X, inference(cnf_transformation, [], [6])).
+cnf(16, plain, d(mul(V17, V18), V17) = add(V18, mul(V17, d(V18, V17))), inference(demodulation, [], [14, 15])).
+cnf(17, plain, d(mul(V35, ln(V35)), V35) = add(ln(V35), 1), inference(superposition, [], [11, 16])).
+cnf(18, plain, d(exp(U), X) = mul(exp(U), d(U, X)), inference(cnf_transformation, [], [7])).
+cnf(19, plain, d(exp(mul(V39, ln(V39))), V39) = mul(exp(mul(V39, ln(V39))), add(ln(V39), 1)), inference(superposition, [], [17, 18])).
+cnf(20, plain, ~(d(V131, x) = d(exp(mul(x, ln(x))), x)) | ans(V131), inference(demodulation, [], [8, 19])).
+cnf(21, plain, ans(exp(mul(x, ln(x)))), inference(equality_resolution, [], [20])).
+% SZS output end Proof

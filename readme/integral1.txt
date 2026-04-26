@@ -1,0 +1,21 @@
+[1] negated_conjecture:  ¬(d(Y, x) = mul(exp(mul(x, ln(x))), add(ln(x), 1))) ∨ ans(Y)                     { query | AnsTasks/zad16d.p }
+[2] axiom:               mul(X, div(1, X)) = 1                                                            { mul_inv | AnsTasks/zad16d.p }
+[3] axiom:               d(ln(X), X) = div(1, X)                                                          { diff_ln | AnsTasks/zad16d.p }
+[4] axiom:               d(X, X) = 1                                                                      { diff_var | AnsTasks/zad16d.p }
+[5] axiom:               d(mul(U, V), X) = add(mul(d(U, X), V), mul(U, d(V, X)))                          { diff_mul | AnsTasks/zad16d.p }
+[6] axiom:               mul(1, X) = X                                                                    { mul_1_l | AnsTasks/zad16d.p }
+[7] axiom:               d(exp(U), X) = mul(exp(U), d(U, X))                                              { diff_exp_chain | AnsTasks/zad16d.p }
+[8] plain:               ¬(d(Y, x) = mul(exp(mul(x, ln(x))), add(ln(x), 1))) ∨ ans(Y)                     { cnf_transformation [1] }
+[9] plain:               mul(X, div(1, X)) = 1                                                            { cnf_transformation [2] }
+[10] plain:              d(ln(X), X) = div(1, X)                                                          { cnf_transformation [3] }
+[11] plain:              mul(V9, d(ln(V9), V9)) = 1                                                       { demodulation [9, 10] }
+[12] plain:              d(X, X) = 1                                                                      { cnf_transformation [4] }
+[13] plain:              d(mul(U, V), X) = add(mul(d(U, X), V), mul(U, d(V, X)))                          { cnf_transformation [5] }
+[14] plain:              d(mul(V17, V18), V17) = add(mul(1, V18), mul(V17, d(V18, V17)))                  { superposition [12, 13] }
+[15] plain:              mul(1, X) = X                                                                    { cnf_transformation [6] }
+[16] plain:              d(mul(V17, V18), V17) = add(V18, mul(V17, d(V18, V17)))                          { demodulation [14, 15] }
+[17] plain:              d(mul(V35, ln(V35)), V35) = add(ln(V35), 1)                                      { superposition [11, 16] }
+[18] plain:              d(exp(U), X) = mul(exp(U), d(U, X))                                              { cnf_transformation [7] }
+[19] plain:              d(exp(mul(V39, ln(V39))), V39) = mul(exp(mul(V39, ln(V39))), add(ln(V39), 1))    { superposition [17, 18] }
+[20] plain:              ¬(d(V131, x) = d(exp(mul(x, ln(x))), x)) ∨ ans(V131)                             { demodulation [8, 19] }
+[21] plain:              ans(exp(mul(x, ln(x))))                                                          { equality_resolution [20] }

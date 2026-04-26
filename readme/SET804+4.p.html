@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proof Visualization</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --border: 1px solid #dee2e6;
+            --bg-hover: #f8f9fa;
+            --bg-highlight: #fff3cd;
+            --clr-text: #212529;
+            --clr-meta: #4c555d;
+            --clr-link: #0d6efd;
+            --font-main: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--clr-text);
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .proof-container {
+            border: var(--border);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: fit-content;
+            max-width: 98%;
+            margin: 0 auto;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .proof-title {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-bottom: var(--border);
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .proof-body-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .proof-body {
+            display: grid;
+            grid-template-columns: max-content max-content minmax(300px, 1fr) max-content;
+        }
+
+        .proof-row { display: contents; }
+
+        .proof-row > div {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+        }
+
+        .row-hover > div { background-color: var(--bg-hover); }
+        .row-highlight > div { background-color: var(--bg-highlight); transition: background 0.2s; }
+
+        .col-id {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--clr-meta);
+            border-right: 1px solid #eee;
+            justify-content: flex-end;
+            white-space: nowrap;
+        }
+
+        .col-role { justify-content: center; padding-left: 15px; padding-right: 15px; }
+
+        .col-formula {
+            font-family: 'Latin Modern Math', 'Cambria Math', serif;
+            font-size: 1.15em;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .col-formula::-webkit-scrollbar { height: 4px; }
+        .col-formula::-webkit-scrollbar-thumb { background: #ccc; }
+
+        .col-source {
+            border-left: 1px solid #eee;
+            font-size: 0.9em;
+            color: var(--clr-meta);
+            white-space: nowrap;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        .col-source a { color: var(--clr-link); }
+        .col-id a { color: inherit; text-decoration: none; cursor: pointer; }
+        .col-id a:hover { text-decoration: underline; color: #000; }
+        .col-source a:hover { text-decoration: underline; }
+
+        .src-file { color: #806060; }
+        .src-name { color: #402020; font-weight: normal; }
+        .src-rule { color: #003366; font-weight: normal; }
+        .src-parents { color: #888; margin-left: 5px; }
+
+        /* --- ROLE STYLES --- */
+        .role-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: lowercase;
+            font-variant: small-caps;
+        }
+        
+        /* Group 1: Base Truths & Definitions (Dark Green) */
+        .role-axiom, .role-hypothesis, 
+        .role-definition, .role-assumption, 
+        .role-lemma, .role-theorem { 
+            color: #198754; 
+        }
+        
+        /* Group 2: Conflicts & Goals (Red/Orange) */
+        .role-negated_conjecture { color: #d32f2f; }
+        .role-conjecture { color: #e65100; }
+        
+        /* Group 3: Steps & Technical (Subtle Grey) */
+        .role-plain, .role-unknown, 
+        .role-type, .role-fi_domain, .role-fi_functors, .role-fi_predicates { 
+            color: #8d8d8d;
+            font-weight: 500; 
+        }
+        
+        @media (max-width: 800px) {
+             .proof-body { grid-template-columns: 1fr; }
+             .proof-row { display: flex; flex-direction: column; border-bottom: 4px solid #eee; }
+             .proof-row > div { border: none; width: 100%; justify-content: flex-start; padding: 4px 10px; }
+             .col-id { border-right: none; }
+             .col-source { border-left: none; }
+             .col-formula { white-space: normal; overflow-x: visible; }
+        }
+    </style>
+</head>
+<body>
+    <div class="proof-container">
+        <div class="proof-title">Proof</div>
+        <div class="proof-body-wrapper">
+            <div class="proof-body">
+<div class='proof-row' id='n1' data-parents=''>
+  <div class='col-id'><a href='#n1'>1</a></div>
+  <div class='col-role'><span class='role-badge role-conjecture'>conjecture</span></div>
+  <div class='col-formula'>\( \forall \mathit{R}\, \forall \mathit{E}\, \left(\mathrm{order}(\mathit{R}, \mathit{E}) \to \forall \mathit{M1}\, \forall \mathit{M2}\, \left(\mathrm{min}(\mathit{M1}, \mathit{R}, \mathit{E}) \land \mathrm{min}(\mathit{M2}, \mathit{R}, \mathit{E}) \land \neg \left(\mathit{M1} = \mathit{M2}\right) \to \neg \exists \mathit{M}\, \mathrm{least}(\mathit{M}, \mathit{R}, \mathit{E})\right)\right) \)</div>
+  <div class='col-source'><span class='src-name'>thIV16</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Problems/SET/SET804+4.p</span></div>
+</div>
+<div class='proof-row' id='n2' data-parents=''>
+  <div class='col-id'><a href='#n2'>2</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{R}\, \forall \mathit{E}\, \forall \mathit{M}\, \left(\mathrm{least}(\mathit{M}, \mathit{R}, \mathit{E}) \leftrightarrow \mathrm{member}(\mathit{M}, \mathit{E}) \land \forall \mathit{X}\, \left(\mathrm{member}(\mathit{X}, \mathit{E}) \to \mathrm{apply}(\mathit{R}, \mathit{M}, \mathit{X})\right)\right) \)</div>
+  <div class='col-source'><span class='src-name'>least</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Axioms/SET006+3.ax</span></div>
+</div>
+<div class='proof-row' id='n3' data-parents=''>
+  <div class='col-id'><a href='#n3'>3</a></div>
+  <div class='col-role'><span class='role-badge role-axiom'>axiom</span></div>
+  <div class='col-formula'>\( \forall \mathit{R}\, \forall \mathit{E}\, \forall \mathit{M}\, \left(\mathrm{min}(\mathit{M}, \mathit{R}, \mathit{E}) \leftrightarrow \mathrm{member}(\mathit{M}, \mathit{E}) \land \forall \mathit{X}\, \left(\mathrm{member}(\mathit{X}, \mathit{E}) \land \mathrm{apply}(\mathit{R}, \mathit{X}, \mathit{M}) \to \mathit{M} = \mathit{X}\right)\right) \)</div>
+  <div class='col-source'><span class='src-name'>min</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span class='src-file'>Axioms/SET006+3.ax</span></div>
+</div>
+<div class='proof-row' id='n4' data-parents='n1'>
+  <div class='col-id'><a href='#n4'>4</a></div>
+  <div class='col-role'><span class='role-badge role-negated_conjecture'>negated_conjecture</span></div>
+  <div class='col-formula'>\( \neg \forall \mathit{R}\, \forall \mathit{E}\, \left(\mathrm{order}(\mathit{R}, \mathit{E}) \to \forall \mathit{M1}\, \forall \mathit{M2}\, \left(\mathrm{min}(\mathit{M1}, \mathit{R}, \mathit{E}) \land \mathrm{min}(\mathit{M2}, \mathit{R}, \mathit{E}) \land \neg \left(\mathit{M1} = \mathit{M2}\right) \to \neg \exists \mathit{M}\, \mathrm{least}(\mathit{M}, \mathit{R}, \mathit{E})\right)\right) \)</div>
+  <div class='col-source'><span class='src-rule'>negate_conjecture</span> <span class='src-parents'>[ <a href='#n1'>1</a> ]</span></div>
+</div>
+<div class='proof-row' id='n5' data-parents='n4'>
+  <div class='col-id'><a href='#n5'>5</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{least}(\mathrm{sk21}, \mathrm{sk17}, \mathrm{sk18}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n4'>4</a> ]</span></div>
+</div>
+<div class='proof-row' id='n6' data-parents='n2'>
+  <div class='col-id'><a href='#n6'>6</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{least}(\mathit{V3}, \mathit{V1}, \mathit{V2}) \lor \neg \mathrm{member}(\mathit{V4}, \mathit{V2}) \lor \mathrm{apply}(\mathit{V1}, \mathit{V3}, \mathit{V4}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n2'>2</a> ]</span></div>
+</div>
+<div class='proof-row' id='n7' data-parents='n5 n6'>
+  <div class='col-id'><a href='#n7'>7</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathit{V538}, \mathrm{sk18}) \lor \mathrm{apply}(\mathrm{sk17}, \mathrm{sk21}, \mathit{V538}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n5'>5</a>, <a href='#n6'>6</a> ]</span></div>
+</div>
+<div class='proof-row' id='n8' data-parents='n4'>
+  <div class='col-id'><a href='#n8'>8</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{min}(\mathrm{sk19}, \mathrm{sk17}, \mathrm{sk18}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n4'>4</a> ]</span></div>
+</div>
+<div class='proof-row' id='n9' data-parents='n3'>
+  <div class='col-id'><a href='#n9'>9</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{min}(\mathit{V3}, \mathit{V1}, \mathit{V2}) \lor \neg \mathrm{member}(\mathit{V4}, \mathit{V2}) \lor \neg \mathrm{apply}(\mathit{V1}, \mathit{V4}, \mathit{V3}) \lor \mathit{V3} = \mathit{V4} \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n3'>3</a> ]</span></div>
+</div>
+<div class='proof-row' id='n10' data-parents='n8 n9'>
+  <div class='col-id'><a href='#n10'>10</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathit{V519}, \mathrm{sk18}) \lor \neg \mathrm{apply}(\mathrm{sk17}, \mathit{V519}, \mathrm{sk19}) \lor \mathrm{sk19} = \mathit{V519} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n8'>8</a>, <a href='#n9'>9</a> ]</span></div>
+</div>
+<div class='proof-row' id='n11' data-parents='n7 n10'>
+  <div class='col-id'><a href='#n11'>11</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathrm{sk19}, \mathrm{sk18}) \lor \neg \mathrm{member}(\mathrm{sk21}, \mathrm{sk18}) \lor \mathrm{sk19} = \mathrm{sk21} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n7'>7</a>, <a href='#n10'>10</a> ]</span></div>
+</div>
+<div class='proof-row' id='n12' data-parents='n2'>
+  <div class='col-id'><a href='#n12'>12</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{least}(\mathit{V3}, \mathit{V1}, \mathit{V2}) \lor \mathrm{member}(\mathit{V3}, \mathit{V2}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n2'>2</a> ]</span></div>
+</div>
+<div class='proof-row' id='n13' data-parents='n5 n12'>
+  <div class='col-id'><a href='#n13'>13</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{member}(\mathrm{sk21}, \mathrm{sk18}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n5'>5</a>, <a href='#n12'>12</a> ]</span></div>
+</div>
+<div class='proof-row' id='n14' data-parents='n11 n13'>
+  <div class='col-id'><a href='#n14'>14</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathrm{sk19}, \mathrm{sk18}) \lor \mathrm{sk19} = \mathrm{sk21} \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n11'>11</a>, <a href='#n13'>13</a> ]</span></div>
+</div>
+<div class='proof-row' id='n15' data-parents='n3'>
+  <div class='col-id'><a href='#n15'>15</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{min}(\mathit{V3}, \mathit{V1}, \mathit{V2}) \lor \mathrm{member}(\mathit{V3}, \mathit{V2}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n3'>3</a> ]</span></div>
+</div>
+<div class='proof-row' id='n16' data-parents='n8 n15'>
+  <div class='col-id'><a href='#n16'>16</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{member}(\mathrm{sk19}, \mathrm{sk18}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n8'>8</a>, <a href='#n15'>15</a> ]</span></div>
+</div>
+<div class='proof-row' id='n17' data-parents='n14 n16'>
+  <div class='col-id'><a href='#n17'>17</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk19} = \mathrm{sk21} \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n14'>14</a>, <a href='#n16'>16</a> ]</span></div>
+</div>
+<div class='proof-row' id='n18' data-parents='n7 n17'>
+  <div class='col-id'><a href='#n18'>18</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathit{V538}, \mathrm{sk18}) \lor \mathrm{apply}(\mathrm{sk17}, \mathrm{sk19}, \mathit{V538}) \)</div>
+  <div class='col-source'><span class='src-rule'>demodulation</span> <span class='src-parents'>[ <a href='#n7'>7</a>, <a href='#n17'>17</a> ]</span></div>
+</div>
+<div class='proof-row' id='n19' data-parents='n4'>
+  <div class='col-id'><a href='#n19'>19</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{min}(\mathrm{sk20}, \mathrm{sk17}, \mathrm{sk18}) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n4'>4</a> ]</span></div>
+</div>
+<div class='proof-row' id='n20' data-parents='n19 n9'>
+  <div class='col-id'><a href='#n20'>20</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathit{V520}, \mathrm{sk18}) \lor \neg \mathrm{apply}(\mathrm{sk17}, \mathit{V520}, \mathrm{sk20}) \lor \mathrm{sk20} = \mathit{V520} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n9'>9</a> ]</span></div>
+</div>
+<div class='proof-row' id='n21' data-parents='n18 n20'>
+  <div class='col-id'><a href='#n21'>21</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathrm{sk20}, \mathrm{sk18}) \lor \neg \mathrm{member}(\mathrm{sk19}, \mathrm{sk18}) \lor \mathrm{sk20} = \mathrm{sk19} \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n18'>18</a>, <a href='#n20'>20</a> ]</span></div>
+</div>
+<div class='proof-row' id='n22' data-parents='n19 n15'>
+  <div class='col-id'><a href='#n22'>22</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{member}(\mathrm{sk20}, \mathrm{sk18}) \)</div>
+  <div class='col-source'><span class='src-rule'>resolution</span> <span class='src-parents'>[ <a href='#n19'>19</a>, <a href='#n15'>15</a> ]</span></div>
+</div>
+<div class='proof-row' id='n23' data-parents='n21 n22'>
+  <div class='col-id'><a href='#n23'>23</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \mathrm{member}(\mathrm{sk19}, \mathrm{sk18}) \lor \mathrm{sk20} = \mathrm{sk19} \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n21'>21</a>, <a href='#n22'>22</a> ]</span></div>
+</div>
+<div class='proof-row' id='n24' data-parents='n23 n16'>
+  <div class='col-id'><a href='#n24'>24</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \mathrm{sk20} = \mathrm{sk19} \)</div>
+  <div class='col-source'><span class='src-rule'>predicate_unit_simplification</span> <span class='src-parents'>[ <a href='#n23'>23</a>, <a href='#n16'>16</a> ]</span></div>
+</div>
+<div class='proof-row' id='n25' data-parents='n4'>
+  <div class='col-id'><a href='#n25'>25</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \neg \left(\mathrm{sk19} = \mathrm{sk20}\right) \)</div>
+  <div class='col-source'><span class='src-rule'>cnf_transformation</span> <span class='src-parents'>[ <a href='#n4'>4</a> ]</span></div>
+</div>
+<div class='proof-row' id='n26' data-parents='n24 n25'>
+  <div class='col-id'><a href='#n26'>26</a></div>
+  <div class='col-role'><span class='role-badge role-plain'>plain</span></div>
+  <div class='col-formula'>\( \bot \)</div>
+  <div class='col-source'><span class='src-rule'>negative_simplify-reflect</span> <span class='src-parents'>[ <a href='#n24'>24</a>, <a href='#n25'>25</a> ]</span></div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Scroll handling for display: contents
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetRow = document.getElementById(targetId);
+                
+                if (targetRow) {
+                    const firstChild = targetRow.firstElementChild;
+                    if (firstChild) {
+                        firstChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        highlightRow(targetId, 'row-hover');
+                        setTimeout(() => unhighlightRow(targetId, 'row-hover'), 1500);
+                    }
+                }
+            });
+        });
+
+        const rows = document.querySelectorAll('.proof-row');
+
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                const id = row.id;
+                highlightRow(id, 'row-hover');
+                const parents = row.getAttribute('data-parents');
+                if (parents) {
+                    parents.split(' ').forEach(pid => highlightRow(pid, 'row-highlight'));
+                }
+            });
+
+            row.addEventListener('mouseleave', () => {
+                const id = row.id;
+                unhighlightRow(id, 'row-hover');
+                const parents = row.getAttribute('data-parents');
+                if (parents) {
+                    parents.split(' ').forEach(pid => unhighlightRow(pid, 'row-highlight'));
+                }
+            });
+        });
+
+        function highlightRow(id, className) {
+            if (!id) return;
+            const row = document.getElementById(id);
+            if (row) row.classList.add(className);
+        }
+
+        function unhighlightRow(id, className) {
+            if (!id) return;
+            const row = document.getElementById(id);
+            if (row) row.classList.remove(className);
+        }
+    });
+</script>
+</body>
+</html>

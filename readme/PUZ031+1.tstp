@@ -1,0 +1,94 @@
+% SZS status Theorem for Problems/PUZ/PUZ031+1.p
+% SZS output start Proof
+fof(1, axiom, ?[X]: grain(X), file('Problems/PUZ/PUZ031+1.p', pel47_6_1)).
+fof(2, axiom, ![X1]: (grain(X1) => plant(X1)), file('Problems/PUZ/PUZ031+1.p', pel47_6_2)).
+fof(3, axiom, ?[X1]: wolf(X1), file('Problems/PUZ/PUZ031+1.p', pel47_1_2)).
+fof(4, axiom, ?[X1]: fox(X1), file('Problems/PUZ/PUZ031+1.p', pel47_2_2)).
+fof(5, axiom, ?[X1]: snail(X1), file('Problems/PUZ/PUZ031+1.p', pel47_5_2)).
+fof(6, axiom, ![X]: (caterpillar(X) | snail(X) => ?[Y]: (plant(Y) & eats(X, Y))), file('Problems/PUZ/PUZ031+1.p', pel47_14)).
+fof(7, axiom, ?[X1]: bird(X1), file('Problems/PUZ/PUZ031+1.p', pel47_3_2)).
+fof(8, axiom, ![X]: ![Y]: (bird(Y) & (snail(X) | caterpillar(X)) => much_smaller(X, Y)), file('Problems/PUZ/PUZ031+1.p', pel47_8)).
+fof(9, axiom, ![X]: (animal(X) => ![Y]: (plant(Y) => eats(X, Y)) | ![Y1]: (animal(Y1) & much_smaller(Y1, X) & ?[Z]: (plant(Z) & eats(Y1, Z)) => eats(X, Y1))), file('Problems/PUZ/PUZ031+1.p', pel47_7)).
+fof(10, axiom, ![X]: (snail(X) => animal(X)), file('Problems/PUZ/PUZ031+1.p', pel47_5_1)).
+fof(11, axiom, ![X]: (bird(X) => animal(X)), file('Problems/PUZ/PUZ031+1.p', pel47_3_1)).
+fof(12, axiom, ![X]: ![Y]: (bird(X) & fox(Y) => much_smaller(X, Y)), file('Problems/PUZ/PUZ031+1.p', pel47_9)).
+fof(13, axiom, ![X]: (fox(X) => animal(X)), file('Problems/PUZ/PUZ031+1.p', pel47_2_1)).
+fof(14, axiom, ![X]: ![Y]: (bird(X) & snail(Y) => ~eats(X, Y)), file('Problems/PUZ/PUZ031+1.p', pel47_13)).
+fof(15, axiom, ![X]: ![Y]: (fox(X) & wolf(Y) => much_smaller(X, Y)), file('Problems/PUZ/PUZ031+1.p', pel47_10)).
+fof(16, axiom, ![X]: (wolf(X) => animal(X)), file('Problems/PUZ/PUZ031+1.p', pel47_1_1)).
+fof(17, conjecture, ?[X]: ?[Y]: (animal(X) & animal(Y) & ?[Z]: (grain(Z) & eats(Y, Z) & eats(X, Y))), file('Problems/PUZ/PUZ031+1.p', pel47)).
+fof(18, axiom, ![X]: ![Y]: (wolf(X) & (fox(Y) | grain(Y)) => ~eats(X, Y)), file('Problems/PUZ/PUZ031+1.p', pel47_11)).
+cnf(19, plain, grain(sk6), inference(cnf_transformation, [], [1])).
+cnf(20, plain, ~grain(X1) | plant(X1), inference(cnf_transformation, [], [2])).
+cnf(21, plain, wolf(sk1), inference(cnf_transformation, [], [3])).
+cnf(22, plain, fox(sk2), inference(cnf_transformation, [], [4])).
+cnf(23, plain, snail(sk5), inference(cnf_transformation, [], [5])).
+cnf(24, plain, ~snail(X) | plant(sk7(X)), inference(cnf_transformation, [], [6])).
+cnf(25, plain, plant(sk7(sk5)), inference(resolution, [], [23, 24])).
+cnf(26, plain, bird(sk3), inference(cnf_transformation, [], [7])).
+cnf(27, plain, ~snail(X) | eats(X, sk7(X)), inference(cnf_transformation, [], [6])).
+cnf(28, plain, ~bird(Y) | ~snail(X) | much_smaller(X, Y), inference(cnf_transformation, [], [8])).
+cnf(29, plain, ~animal(X) | ~plant(Y) | eats(X, Y) | ~animal(Y1) | ~much_smaller(Y1, X) | ~plant(Z) | ~eats(Y1, Z) | eats(X, Y1), inference(cnf_transformation, [], [9])).
+cnf(30, plain, ~bird(V34) | ~snail(V35) | ~animal(V34) | ~plant(V36) | eats(V34, V36) | ~animal(V35) | ~plant(V37) | ~eats(V35, V37) | eats(V34, V35), inference(resolution, [], [28, 29])).
+cnf(31, plain, ~snail(V73) | ~bird(V74) | ~snail(V73) | ~animal(V74) | ~plant(V75) | eats(V74, V75) | ~animal(V73) | ~plant(sk7(V73)) | eats(V74, V73), inference(resolution, [], [27, 30])).
+cnf(32, plain, ~snail(V73) | ~bird(V74) | ~animal(V74) | ~plant(V75) | eats(V74, V75) | ~animal(V73) | ~plant(sk7(V73)) | eats(V74, V73), inference(deletion_of_duplicate_literals, [], [31])).
+cnf(33, plain, ~snail(sk5) | ~bird(V115) | ~animal(V115) | ~plant(V116) | eats(V115, V116) | ~animal(sk5) | eats(V115, sk5), inference(resolution, [], [25, 32])).
+cnf(34, plain, ~bird(V115) | ~animal(V115) | ~plant(V116) | eats(V115, V116) | ~animal(sk5) | eats(V115, sk5), inference(predicate_unit_simplification, [], [33, 23])).
+cnf(35, plain, ~snail(X) | animal(X), inference(cnf_transformation, [], [10])).
+cnf(36, plain, animal(sk5), inference(resolution, [], [23, 35])).
+cnf(37, plain, ~bird(V115) | ~animal(V115) | ~plant(V116) | eats(V115, V116) | eats(V115, sk5), inference(predicate_unit_simplification, [], [34, 36])).
+cnf(38, plain, ~animal(sk3) | ~plant(V123) | eats(sk3, V123) | eats(sk3, sk5), inference(resolution, [], [26, 37])).
+cnf(39, plain, ~bird(X) | animal(X), inference(cnf_transformation, [], [11])).
+cnf(40, plain, animal(sk3), inference(resolution, [], [26, 39])).
+cnf(41, plain, ~plant(V123) | eats(sk3, V123) | eats(sk3, sk5), inference(predicate_unit_simplification, [], [38, 40])).
+cnf(42, plain, eats(sk3, sk7(sk5)) | eats(sk3, sk5), inference(resolution, [], [25, 41])).
+cnf(43, plain, ~bird(X) | ~fox(Y) | much_smaller(X, Y), inference(cnf_transformation, [], [12])).
+cnf(44, plain, ~bird(V42) | ~fox(V43) | ~animal(V43) | ~plant(V44) | eats(V43, V44) | ~animal(V42) | ~plant(V45) | ~eats(V42, V45) | eats(V43, V42), inference(resolution, [], [43, 29])).
+cnf(45, plain, eats(sk3, sk5) | ~bird(sk3) | ~fox(V130) | ~animal(V130) | ~plant(V131) | eats(V130, V131) | ~animal(sk3) | ~plant(sk7(sk5)) | eats(V130, sk3), inference(resolution, [], [42, 44])).
+cnf(46, plain, eats(sk3, sk5) | ~fox(V130) | ~animal(V130) | ~plant(V131) | eats(V130, V131) | ~animal(sk3) | ~plant(sk7(sk5)) | eats(V130, sk3), inference(predicate_unit_simplification, [], [45, 26])).
+cnf(47, plain, eats(sk3, sk5) | ~fox(V130) | ~animal(V130) | ~plant(V131) | eats(V130, V131) | ~plant(sk7(sk5)) | eats(V130, sk3), inference(predicate_unit_simplification, [], [46, 40])).
+cnf(48, plain, eats(sk3, sk5) | ~fox(V130) | ~animal(V130) | ~plant(V131) | eats(V130, V131) | eats(V130, sk3), inference(predicate_unit_simplification, [], [47, 25])).
+cnf(49, plain, eats(sk3, sk5) | ~animal(sk2) | ~plant(V243) | eats(sk2, V243) | eats(sk2, sk3), inference(resolution, [], [22, 48])).
+cnf(50, plain, ~fox(X) | animal(X), inference(cnf_transformation, [], [13])).
+cnf(51, plain, animal(sk2), inference(resolution, [], [22, 50])).
+cnf(52, plain, eats(sk3, sk5) | ~plant(V243) | eats(sk2, V243) | eats(sk2, sk3), inference(predicate_unit_simplification, [], [49, 51])).
+cnf(53, plain, ~grain(V244) | eats(sk3, sk5) | eats(sk2, V244) | eats(sk2, sk3), inference(resolution, [], [20, 52])).
+cnf(54, plain, eats(sk3, sk5) | eats(sk2, sk6) | eats(sk2, sk3), inference(resolution, [], [19, 53])).
+cnf(55, plain, ~bird(X) | ~snail(Y) | ~eats(X, Y), inference(cnf_transformation, [], [14])).
+cnf(56, plain, eats(sk2, sk6) | eats(sk2, sk3) | ~bird(sk3) | ~snail(sk5), inference(resolution, [], [54, 55])).
+cnf(57, plain, eats(sk2, sk6) | eats(sk2, sk3) | ~snail(sk5), inference(predicate_unit_simplification, [], [56, 26])).
+cnf(58, plain, eats(sk2, sk6) | eats(sk2, sk3), inference(predicate_unit_simplification, [], [57, 23])).
+cnf(59, plain, ~fox(X) | ~wolf(Y) | much_smaller(X, Y), inference(cnf_transformation, [], [15])).
+cnf(60, plain, ~fox(V46) | ~wolf(V47) | ~animal(V47) | ~plant(V48) | eats(V47, V48) | ~animal(V46) | ~plant(V49) | ~eats(V46, V49) | eats(V47, V46), inference(resolution, [], [59, 29])).
+cnf(61, plain, eats(sk2, sk3) | ~fox(sk2) | ~wolf(V268) | ~animal(V268) | ~plant(V269) | eats(V268, V269) | ~animal(sk2) | ~plant(sk6) | eats(V268, sk2), inference(resolution, [], [58, 60])).
+cnf(62, plain, eats(sk2, sk3) | ~wolf(V268) | ~animal(V268) | ~plant(V269) | eats(V268, V269) | ~animal(sk2) | ~plant(sk6) | eats(V268, sk2), inference(predicate_unit_simplification, [], [61, 22])).
+cnf(63, plain, eats(sk2, sk3) | ~wolf(V268) | ~animal(V268) | ~plant(V269) | eats(V268, V269) | ~plant(sk6) | eats(V268, sk2), inference(predicate_unit_simplification, [], [62, 51])).
+cnf(64, plain, ~grain(sk6) | eats(sk2, sk3) | ~wolf(V321) | ~animal(V321) | ~plant(V322) | eats(V321, V322) | eats(V321, sk2), inference(resolution, [], [20, 63])).
+cnf(65, plain, eats(sk2, sk3) | ~wolf(V321) | ~animal(V321) | ~plant(V322) | eats(V321, V322) | eats(V321, sk2), inference(predicate_unit_simplification, [], [64, 19])).
+cnf(66, plain, eats(sk2, sk3) | ~animal(sk1) | ~plant(V323) | eats(sk1, V323) | eats(sk1, sk2), inference(resolution, [], [21, 65])).
+cnf(67, plain, ~wolf(X) | animal(X), inference(cnf_transformation, [], [16])).
+cnf(68, plain, animal(sk1), inference(resolution, [], [21, 67])).
+cnf(69, plain, eats(sk2, sk3) | ~plant(V323) | eats(sk1, V323) | eats(sk1, sk2), inference(predicate_unit_simplification, [], [66, 68])).
+cnf(70, plain, ~grain(V324) | eats(sk2, sk3) | eats(sk1, V324) | eats(sk1, sk2), inference(resolution, [], [20, 69])).
+cnf(71, plain, eats(sk2, sk3) | eats(sk1, sk6) | eats(sk1, sk2), inference(resolution, [], [19, 70])).
+cnf(72, plain, ~grain(V124) | eats(sk3, V124) | eats(sk3, sk5), inference(resolution, [], [20, 41])).
+cnf(73, plain, eats(sk3, sk6) | eats(sk3, sk5), inference(resolution, [], [19, 72])).
+fof(74, negated_conjecture, ~?[X]: ?[Y]: (animal(X) & animal(Y) & ?[Z]: (grain(Z) & eats(Y, Z) & eats(X, Y))), inference(negate_conjecture, [], [17])).
+cnf(75, plain, ~animal(X) | ~animal(Y) | ~grain(Z) | ~eats(Y, Z) | ~eats(X, Y), inference(cnf_transformation, [], [74])).
+cnf(76, plain, eats(sk3, sk5) | ~animal(V150) | ~animal(sk3) | ~grain(sk6) | ~eats(V150, sk3), inference(resolution, [], [73, 75])).
+cnf(77, plain, eats(sk3, sk5) | ~animal(V150) | ~animal(sk3) | ~eats(V150, sk3), inference(predicate_unit_simplification, [], [76, 19])).
+cnf(78, plain, eats(sk3, sk5) | ~animal(V150) | ~eats(V150, sk3), inference(predicate_unit_simplification, [], [77, 40])).
+cnf(79, plain, eats(sk1, sk6) | eats(sk1, sk2) | eats(sk3, sk5) | ~animal(sk2), inference(resolution, [], [71, 78])).
+cnf(80, plain, eats(sk1, sk6) | eats(sk1, sk2) | eats(sk3, sk5), inference(predicate_unit_simplification, [], [79, 51])).
+cnf(81, plain, eats(sk1, sk6) | eats(sk1, sk2) | ~bird(sk3) | ~snail(sk5), inference(resolution, [], [80, 55])).
+cnf(82, plain, eats(sk1, sk6) | eats(sk1, sk2) | ~snail(sk5), inference(predicate_unit_simplification, [], [81, 26])).
+cnf(83, plain, eats(sk1, sk6) | eats(sk1, sk2), inference(predicate_unit_simplification, [], [82, 23])).
+cnf(84, plain, ~wolf(X) | ~grain(Y) | ~eats(X, Y), inference(cnf_transformation, [], [18])).
+cnf(85, plain, eats(sk1, sk2) | ~wolf(sk1) | ~grain(sk6), inference(resolution, [], [83, 84])).
+cnf(86, plain, eats(sk1, sk2) | ~grain(sk6), inference(predicate_unit_simplification, [], [85, 21])).
+cnf(87, plain, eats(sk1, sk2), inference(predicate_unit_simplification, [], [86, 19])).
+cnf(88, plain, ~wolf(X) | ~fox(Y) | ~eats(X, Y), inference(cnf_transformation, [], [18])).
+cnf(89, plain, ~wolf(sk1) | ~fox(sk2), inference(resolution, [], [87, 88])).
+cnf(90, plain, ~fox(sk2), inference(predicate_unit_simplification, [], [89, 21])).
+cnf(91, plain, $false, inference(predicate_unit_simplification, [], [90, 22])).
+% SZS output end Proof

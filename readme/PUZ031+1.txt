@@ -1,0 +1,91 @@
+[1] axiom:                ∃Xgrain(X)                                                                                                                            { pel47_6_1 | Problems/PUZ/PUZ031+1.p }
+[2] axiom:                ∀X1(grain(X1) ⇒ plant(X1))                                                                                                            { pel47_6_2 | Problems/PUZ/PUZ031+1.p }
+[3] axiom:                ∃X1wolf(X1)                                                                                                                           { pel47_1_2 | Problems/PUZ/PUZ031+1.p }
+[4] axiom:                ∃X1fox(X1)                                                                                                                            { pel47_2_2 | Problems/PUZ/PUZ031+1.p }
+[5] axiom:                ∃X1snail(X1)                                                                                                                          { pel47_5_2 | Problems/PUZ/PUZ031+1.p }
+[6] axiom:                ∀X(caterpillar(X) ∨ snail(X) ⇒ ∃Y(plant(Y) ∧ eats(X, Y)))                                                                             { pel47_14 | Problems/PUZ/PUZ031+1.p }
+[7] axiom:                ∃X1bird(X1)                                                                                                                           { pel47_3_2 | Problems/PUZ/PUZ031+1.p }
+[8] axiom:                ∀X∀Y(bird(Y) ∧ (snail(X) ∨ caterpillar(X)) ⇒ much_smaller(X, Y))                                                                      { pel47_8 | Problems/PUZ/PUZ031+1.p }
+[9] axiom:                ∀X(animal(X) ⇒ ∀Y(plant(Y) ⇒ eats(X, Y)) ∨ ∀Y1(animal(Y1) ∧ much_smaller(Y1, X) ∧ ∃Z(plant(Z) ∧ eats(Y1, Z)) ⇒ eats(X, Y1)))          { pel47_7 | Problems/PUZ/PUZ031+1.p }
+[10] axiom:               ∀X(snail(X) ⇒ animal(X))                                                                                                              { pel47_5_1 | Problems/PUZ/PUZ031+1.p }
+[11] axiom:               ∀X(bird(X) ⇒ animal(X))                                                                                                               { pel47_3_1 | Problems/PUZ/PUZ031+1.p }
+[12] axiom:               ∀X∀Y(bird(X) ∧ fox(Y) ⇒ much_smaller(X, Y))                                                                                           { pel47_9 | Problems/PUZ/PUZ031+1.p }
+[13] axiom:               ∀X(fox(X) ⇒ animal(X))                                                                                                                { pel47_2_1 | Problems/PUZ/PUZ031+1.p }
+[14] axiom:               ∀X∀Y(bird(X) ∧ snail(Y) ⇒ ¬eats(X, Y))                                                                                                { pel47_13 | Problems/PUZ/PUZ031+1.p }
+[15] axiom:               ∀X∀Y(fox(X) ∧ wolf(Y) ⇒ much_smaller(X, Y))                                                                                           { pel47_10 | Problems/PUZ/PUZ031+1.p }
+[16] axiom:               ∀X(wolf(X) ⇒ animal(X))                                                                                                               { pel47_1_1 | Problems/PUZ/PUZ031+1.p }
+[17] conjecture:          ∃X∃Y(animal(X) ∧ animal(Y) ∧ ∃Z(grain(Z) ∧ eats(Y, Z) ∧ eats(X, Y)))                                                                  { pel47 | Problems/PUZ/PUZ031+1.p }
+[18] axiom:               ∀X∀Y(wolf(X) ∧ (fox(Y) ∨ grain(Y)) ⇒ ¬eats(X, Y))                                                                                     { pel47_11 | Problems/PUZ/PUZ031+1.p }
+[19] plain:               grain(sk6)                                                                                                                            { cnf_transformation [1] }
+[20] plain:               ¬grain(X1) ∨ plant(X1)                                                                                                                { cnf_transformation [2] }
+[21] plain:               wolf(sk1)                                                                                                                             { cnf_transformation [3] }
+[22] plain:               fox(sk2)                                                                                                                              { cnf_transformation [4] }
+[23] plain:               snail(sk5)                                                                                                                            { cnf_transformation [5] }
+[24] plain:               ¬snail(X) ∨ plant(sk7(X))                                                                                                             { cnf_transformation [6] }
+[25] plain:               plant(sk7(sk5))                                                                                                                       { resolution [23, 24] }
+[26] plain:               bird(sk3)                                                                                                                             { cnf_transformation [7] }
+[27] plain:               ¬snail(X) ∨ eats(X, sk7(X))                                                                                                           { cnf_transformation [6] }
+[28] plain:               ¬bird(Y) ∨ ¬snail(X) ∨ much_smaller(X, Y)                                                                                             { cnf_transformation [8] }
+[29] plain:               ¬animal(X) ∨ ¬plant(Y) ∨ eats(X, Y) ∨ ¬animal(Y1) ∨ ¬much_smaller(Y1, X) ∨ ¬plant(Z) ∨ ¬eats(Y1, Z) ∨ eats(X, Y1)                     { cnf_transformation [9] }
+[30] plain:               ¬bird(V34) ∨ ¬snail(V35) ∨ ¬animal(V34) ∨ ¬plant(V36) ∨ eats(V34, V36) ∨ ¬animal(V35) ∨ ¬plant(V37) ∨ ¬eats(V35, V37) ∨ eats(V34, V35)    { resolution [28, 29] }
+[31] plain:               ¬snail(V75) ∨ ¬bird(V76) ∨ ¬snail(V75) ∨ ¬animal(V76) ∨ ¬plant(V77) ∨ eats(V76, V77) ∨ ¬animal(V75) ∨ ¬plant(sk7(V75)) ∨ eats(V76, V75)    { resolution [27, 30] }
+[32] plain:               ¬snail(V75) ∨ ¬bird(V76) ∨ ¬animal(V76) ∨ ¬plant(V77) ∨ eats(V76, V77) ∨ ¬animal(V75) ∨ ¬plant(sk7(V75)) ∨ eats(V76, V75)             { deletion_of_duplicate_literals [31] }
+[33] plain:               ¬snail(sk5) ∨ ¬bird(V105) ∨ ¬animal(V105) ∨ ¬plant(V106) ∨ eats(V105, V106) ∨ ¬animal(sk5) ∨ eats(V105, sk5)                          { resolution [25, 32] }
+[34] plain:               ¬bird(V105) ∨ ¬animal(V105) ∨ ¬plant(V106) ∨ eats(V105, V106) ∨ ¬animal(sk5) ∨ eats(V105, sk5)                                        { predicate_unit_simplification [33, 23] }
+[35] plain:               ¬snail(X) ∨ animal(X)                                                                                                                 { cnf_transformation [10] }
+[36] plain:               animal(sk5)                                                                                                                           { resolution [23, 35] }
+[37] plain:               ¬bird(V105) ∨ ¬animal(V105) ∨ ¬plant(V106) ∨ eats(V105, V106) ∨ eats(V105, sk5)                                                       { predicate_unit_simplification [34, 36] }
+[38] plain:               ¬animal(sk3) ∨ ¬plant(V110) ∨ eats(sk3, V110) ∨ eats(sk3, sk5)                                                                        { resolution [26, 37] }
+[39] plain:               ¬bird(X) ∨ animal(X)                                                                                                                  { cnf_transformation [11] }
+[40] plain:               animal(sk3)                                                                                                                           { resolution [26, 39] }
+[41] plain:               ¬plant(V110) ∨ eats(sk3, V110) ∨ eats(sk3, sk5)                                                                                       { predicate_unit_simplification [38, 40] }
+[42] plain:               eats(sk3, sk7(sk5)) ∨ eats(sk3, sk5)                                                                                                  { resolution [25, 41] }
+[43] plain:               ¬bird(X) ∨ ¬fox(Y) ∨ much_smaller(X, Y)                                                                                               { cnf_transformation [12] }
+[44] plain:               ¬bird(V42) ∨ ¬fox(V43) ∨ ¬animal(V43) ∨ ¬plant(V44) ∨ eats(V43, V44) ∨ ¬animal(V42) ∨ ¬plant(V45) ∨ ¬eats(V42, V45) ∨ eats(V43, V42)    { resolution [43, 29] }
+[45] plain:               eats(sk3, sk5) ∨ ¬bird(sk3) ∨ ¬fox(V127) ∨ ¬animal(V127) ∨ ¬plant(V128) ∨ eats(V127, V128) ∨ ¬animal(sk3) ∨ ¬plant(sk7(sk5)) ∨ eats(V127, sk3)    { resolution [42, 44] }
+[46] plain:               eats(sk3, sk5) ∨ ¬fox(V127) ∨ ¬animal(V127) ∨ ¬plant(V128) ∨ eats(V127, V128) ∨ ¬animal(sk3) ∨ ¬plant(sk7(sk5)) ∨ eats(V127, sk3)     { predicate_unit_simplification [45, 26] }
+[47] plain:               eats(sk3, sk5) ∨ ¬fox(V127) ∨ ¬animal(V127) ∨ ¬plant(V128) ∨ eats(V127, V128) ∨ ¬plant(sk7(sk5)) ∨ eats(V127, sk3)                    { predicate_unit_simplification [46, 40] }
+[48] plain:               eats(sk3, sk5) ∨ ¬fox(V127) ∨ ¬animal(V127) ∨ ¬plant(V128) ∨ eats(V127, V128) ∨ eats(V127, sk3)                                       { predicate_unit_simplification [47, 25] }
+[49] plain:               eats(sk3, sk5) ∨ ¬animal(sk2) ∨ ¬plant(V245) ∨ eats(sk2, V245) ∨ eats(sk2, sk3)                                                       { resolution [22, 48] }
+[50] plain:               ¬fox(X) ∨ animal(X)                                                                                                                   { cnf_transformation [13] }
+[51] plain:               animal(sk2)                                                                                                                           { resolution [22, 50] }
+[52] plain:               eats(sk3, sk5) ∨ ¬plant(V245) ∨ eats(sk2, V245) ∨ eats(sk2, sk3)                                                                      { predicate_unit_simplification [49, 51] }
+[53] plain:               ¬grain(V246) ∨ eats(sk3, sk5) ∨ eats(sk2, V246) ∨ eats(sk2, sk3)                                                                      { resolution [20, 52] }
+[54] plain:               eats(sk3, sk5) ∨ eats(sk2, sk6) ∨ eats(sk2, sk3)                                                                                      { resolution [19, 53] }
+[55] plain:               ¬bird(X) ∨ ¬snail(Y) ∨ ¬eats(X, Y)                                                                                                    { cnf_transformation [14] }
+[56] plain:               eats(sk2, sk6) ∨ eats(sk2, sk3) ∨ ¬bird(sk3) ∨ ¬snail(sk5)                                                                            { resolution [54, 55] }
+[57] plain:               eats(sk2, sk6) ∨ eats(sk2, sk3) ∨ ¬snail(sk5)                                                                                         { predicate_unit_simplification [56, 26] }
+[58] plain:               eats(sk2, sk6) ∨ eats(sk2, sk3)                                                                                                       { predicate_unit_simplification [57, 23] }
+[59] plain:               ¬fox(X) ∨ ¬wolf(Y) ∨ much_smaller(X, Y)                                                                                               { cnf_transformation [15] }
+[60] plain:               ¬fox(V46) ∨ ¬wolf(V47) ∨ ¬animal(V47) ∨ ¬plant(V48) ∨ eats(V47, V48) ∨ ¬animal(V46) ∨ ¬plant(V49) ∨ ¬eats(V46, V49) ∨ eats(V47, V46)    { resolution [59, 29] }
+[61] plain:               eats(sk2, sk3) ∨ ¬fox(sk2) ∨ ¬wolf(V270) ∨ ¬animal(V270) ∨ ¬plant(V271) ∨ eats(V270, V271) ∨ ¬animal(sk2) ∨ ¬plant(sk6) ∨ eats(V270, sk2)    { resolution [58, 60] }
+[62] plain:               eats(sk2, sk3) ∨ ¬wolf(V270) ∨ ¬animal(V270) ∨ ¬plant(V271) ∨ eats(V270, V271) ∨ ¬animal(sk2) ∨ ¬plant(sk6) ∨ eats(V270, sk2)         { predicate_unit_simplification [61, 22] }
+[63] plain:               eats(sk2, sk3) ∨ ¬wolf(V270) ∨ ¬animal(V270) ∨ ¬plant(V271) ∨ eats(V270, V271) ∨ ¬plant(sk6) ∨ eats(V270, sk2)                        { predicate_unit_simplification [62, 51] }
+[64] plain:               ¬grain(sk6) ∨ eats(sk2, sk3) ∨ ¬wolf(V321) ∨ ¬animal(V321) ∨ ¬plant(V322) ∨ eats(V321, V322) ∨ eats(V321, sk2)                        { resolution [20, 63] }
+[65] plain:               eats(sk2, sk3) ∨ ¬wolf(V321) ∨ ¬animal(V321) ∨ ¬plant(V322) ∨ eats(V321, V322) ∨ eats(V321, sk2)                                      { predicate_unit_simplification [64, 19] }
+[66] plain:               eats(sk2, sk3) ∨ ¬animal(sk1) ∨ ¬plant(V323) ∨ eats(sk1, V323) ∨ eats(sk1, sk2)                                                       { resolution [21, 65] }
+[67] plain:               ¬wolf(X) ∨ animal(X)                                                                                                                  { cnf_transformation [16] }
+[68] plain:               animal(sk1)                                                                                                                           { resolution [21, 67] }
+[69] plain:               eats(sk2, sk3) ∨ ¬plant(V323) ∨ eats(sk1, V323) ∨ eats(sk1, sk2)                                                                      { predicate_unit_simplification [66, 68] }
+[70] plain:               ¬grain(V324) ∨ eats(sk2, sk3) ∨ eats(sk1, V324) ∨ eats(sk1, sk2)                                                                      { resolution [20, 69] }
+[71] plain:               eats(sk2, sk3) ∨ eats(sk1, sk6) ∨ eats(sk1, sk2)                                                                                      { resolution [19, 70] }
+[72] plain:               ¬grain(V121) ∨ eats(sk3, V121) ∨ eats(sk3, sk5)                                                                                       { resolution [20, 41] }
+[73] plain:               eats(sk3, sk6) ∨ eats(sk3, sk5)                                                                                                       { resolution [19, 72] }
+[74] negated_conjecture:  ¬∃X∃Y(animal(X) ∧ animal(Y) ∧ ∃Z(grain(Z) ∧ eats(Y, Z) ∧ eats(X, Y)))                                                                 { negate_conjecture [17] }
+[75] plain:               ¬animal(X) ∨ ¬animal(Y) ∨ ¬grain(Z) ∨ ¬eats(Y, Z) ∨ ¬eats(X, Y)                                                                       { cnf_transformation [74] }
+[76] plain:               eats(sk3, sk5) ∨ ¬animal(V142) ∨ ¬animal(sk3) ∨ ¬grain(sk6) ∨ ¬eats(V142, sk3)                                                        { resolution [73, 75] }
+[77] plain:               eats(sk3, sk5) ∨ ¬animal(V142) ∨ ¬animal(sk3) ∨ ¬eats(V142, sk3)                                                                      { predicate_unit_simplification [76, 19] }
+[78] plain:               eats(sk3, sk5) ∨ ¬animal(V142) ∨ ¬eats(V142, sk3)                                                                                     { predicate_unit_simplification [77, 40] }
+[79] plain:               eats(sk1, sk6) ∨ eats(sk1, sk2) ∨ eats(sk3, sk5) ∨ ¬animal(sk2)                                                                       { resolution [71, 78] }
+[80] plain:               eats(sk1, sk6) ∨ eats(sk1, sk2) ∨ eats(sk3, sk5)                                                                                      { predicate_unit_simplification [79, 51] }
+[81] plain:               eats(sk1, sk6) ∨ eats(sk1, sk2) ∨ ¬bird(sk3) ∨ ¬snail(sk5)                                                                            { resolution [80, 55] }
+[82] plain:               eats(sk1, sk6) ∨ eats(sk1, sk2) ∨ ¬snail(sk5)                                                                                         { predicate_unit_simplification [81, 26] }
+[83] plain:               eats(sk1, sk6) ∨ eats(sk1, sk2)                                                                                                       { predicate_unit_simplification [82, 23] }
+[84] plain:               ¬wolf(X) ∨ ¬grain(Y) ∨ ¬eats(X, Y)                                                                                                    { cnf_transformation [18] }
+[85] plain:               eats(sk1, sk2) ∨ ¬wolf(sk1) ∨ ¬grain(sk6)                                                                                             { resolution [83, 84] }
+[86] plain:               eats(sk1, sk2) ∨ ¬grain(sk6)                                                                                                          { predicate_unit_simplification [85, 21] }
+[87] plain:               eats(sk1, sk2)                                                                                                                        { predicate_unit_simplification [86, 19] }
+[88] plain:               ¬wolf(X) ∨ ¬fox(Y) ∨ ¬eats(X, Y)                                                                                                      { cnf_transformation [18] }
+[89] plain:               ¬wolf(sk1) ∨ ¬fox(sk2)                                                                                                                { resolution [87, 88] }
+[90] plain:               ¬fox(sk2)                                                                                                                             { predicate_unit_simplification [89, 21] }
+[91] plain:               ⊥                                                                                                                                     { predicate_unit_simplification [90, 22] }

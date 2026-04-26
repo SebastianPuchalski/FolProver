@@ -1,0 +1,26 @@
+[1] conjecture:          ∀R∀E(order(R, E) ⇒ ∀M1∀M2(min(M1, R, E) ∧ min(M2, R, E) ∧ ¬(M1 = M2) ⇒ ¬∃Mleast(M, R, E)))     { thIV16 | Problems/SET/SET804+4.p }
+[2] axiom:               ∀R∀E∀M(least(M, R, E) ⇔ member(M, E) ∧ ∀X(member(X, E) ⇒ apply(R, M, X)))                      { least | Axioms/SET006+3.ax }
+[3] axiom:               ∀R∀E∀M(min(M, R, E) ⇔ member(M, E) ∧ ∀X(member(X, E) ∧ apply(R, X, M) ⇒ M = X))                { min | Axioms/SET006+3.ax }
+[4] negated_conjecture:  ¬∀R∀E(order(R, E) ⇒ ∀M1∀M2(min(M1, R, E) ∧ min(M2, R, E) ∧ ¬(M1 = M2) ⇒ ¬∃Mleast(M, R, E)))    { negate_conjecture [1] }
+[5] plain:               least(sk21, sk17, sk18)                                                                        { cnf_transformation [4] }
+[6] plain:               ¬least(V3, V1, V2) ∨ ¬member(V4, V2) ∨ apply(V1, V3, V4)                                       { cnf_transformation [2] }
+[7] plain:               ¬member(V538, sk18) ∨ apply(sk17, sk21, V538)                                                  { resolution [5, 6] }
+[8] plain:               min(sk19, sk17, sk18)                                                                          { cnf_transformation [4] }
+[9] plain:               ¬min(V3, V1, V2) ∨ ¬member(V4, V2) ∨ ¬apply(V1, V4, V3) ∨ V3 = V4                              { cnf_transformation [3] }
+[10] plain:              ¬member(V519, sk18) ∨ ¬apply(sk17, V519, sk19) ∨ sk19 = V519                                   { resolution [8, 9] }
+[11] plain:              ¬member(sk19, sk18) ∨ ¬member(sk21, sk18) ∨ sk19 = sk21                                        { resolution [7, 10] }
+[12] plain:              ¬least(V3, V1, V2) ∨ member(V3, V2)                                                            { cnf_transformation [2] }
+[13] plain:              member(sk21, sk18)                                                                             { resolution [5, 12] }
+[14] plain:              ¬member(sk19, sk18) ∨ sk19 = sk21                                                              { predicate_unit_simplification [11, 13] }
+[15] plain:              ¬min(V3, V1, V2) ∨ member(V3, V2)                                                              { cnf_transformation [3] }
+[16] plain:              member(sk19, sk18)                                                                             { resolution [8, 15] }
+[17] plain:              sk19 = sk21                                                                                    { predicate_unit_simplification [14, 16] }
+[18] plain:              ¬member(V538, sk18) ∨ apply(sk17, sk19, V538)                                                  { demodulation [7, 17] }
+[19] plain:              min(sk20, sk17, sk18)                                                                          { cnf_transformation [4] }
+[20] plain:              ¬member(V520, sk18) ∨ ¬apply(sk17, V520, sk20) ∨ sk20 = V520                                   { resolution [19, 9] }
+[21] plain:              ¬member(sk20, sk18) ∨ ¬member(sk19, sk18) ∨ sk20 = sk19                                        { resolution [18, 20] }
+[22] plain:              member(sk20, sk18)                                                                             { resolution [19, 15] }
+[23] plain:              ¬member(sk19, sk18) ∨ sk20 = sk19                                                              { predicate_unit_simplification [21, 22] }
+[24] plain:              sk20 = sk19                                                                                    { predicate_unit_simplification [23, 16] }
+[25] plain:              ¬(sk19 = sk20)                                                                                 { cnf_transformation [4] }
+[26] plain:              ⊥                                                                                              { negative_simplify-reflect [24, 25] }

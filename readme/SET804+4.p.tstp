@@ -1,0 +1,29 @@
+% SZS status Theorem for Problems/SET/SET804+4.p
+% SZS output start Proof
+fof(1, conjecture, ![R]: ![E]: (order(R, E) => ![M1]: ![M2]: (min(M1, R, E) & min(M2, R, E) & ~(M1 = M2) => ~?[M]: least(M, R, E))), file('Problems/SET/SET804+4.p', thIV16)).
+fof(2, axiom, ![R]: ![E]: ![M]: (least(M, R, E) <=> member(M, E) & ![X]: (member(X, E) => apply(R, M, X))), file('Axioms/SET006+3.ax', least)).
+fof(3, axiom, ![R]: ![E]: ![M]: (min(M, R, E) <=> member(M, E) & ![X]: (member(X, E) & apply(R, X, M) => M = X)), file('Axioms/SET006+3.ax', min)).
+fof(4, negated_conjecture, ~![R]: ![E]: (order(R, E) => ![M1]: ![M2]: (min(M1, R, E) & min(M2, R, E) & ~(M1 = M2) => ~?[M]: least(M, R, E))), inference(negate_conjecture, [], [1])).
+cnf(5, plain, least(sk21, sk17, sk18), inference(cnf_transformation, [], [4])).
+cnf(6, plain, ~least(V3, V1, V2) | ~member(V4, V2) | apply(V1, V3, V4), inference(cnf_transformation, [], [2])).
+cnf(7, plain, ~member(V544, sk18) | apply(sk17, sk21, V544), inference(resolution, [], [5, 6])).
+cnf(8, plain, min(sk19, sk17, sk18), inference(cnf_transformation, [], [4])).
+cnf(9, plain, ~min(V3, V1, V2) | ~member(V4, V2) | ~apply(V1, V4, V3) | V3 = V4, inference(cnf_transformation, [], [3])).
+cnf(10, plain, ~member(V525, sk18) | ~apply(sk17, V525, sk19) | sk19 = V525, inference(resolution, [], [8, 9])).
+cnf(11, plain, ~member(sk19, sk18) | ~member(sk21, sk18) | sk19 = sk21, inference(resolution, [], [7, 10])).
+cnf(12, plain, ~least(V3, V1, V2) | member(V3, V2), inference(cnf_transformation, [], [2])).
+cnf(13, plain, member(sk21, sk18), inference(resolution, [], [5, 12])).
+cnf(14, plain, ~member(sk19, sk18) | sk19 = sk21, inference(predicate_unit_simplification, [], [11, 13])).
+cnf(15, plain, ~min(V3, V1, V2) | member(V3, V2), inference(cnf_transformation, [], [3])).
+cnf(16, plain, member(sk19, sk18), inference(resolution, [], [8, 15])).
+cnf(17, plain, sk19 = sk21, inference(predicate_unit_simplification, [], [14, 16])).
+cnf(18, plain, ~member(V544, sk18) | apply(sk17, sk19, V544), inference(demodulation, [], [7, 17])).
+cnf(19, plain, min(sk20, sk17, sk18), inference(cnf_transformation, [], [4])).
+cnf(20, plain, ~member(V526, sk18) | ~apply(sk17, V526, sk20) | sk20 = V526, inference(resolution, [], [19, 9])).
+cnf(21, plain, ~member(sk20, sk18) | ~member(sk19, sk18) | sk20 = sk19, inference(resolution, [], [18, 20])).
+cnf(22, plain, member(sk20, sk18), inference(resolution, [], [19, 15])).
+cnf(23, plain, ~member(sk19, sk18) | sk20 = sk19, inference(predicate_unit_simplification, [], [21, 22])).
+cnf(24, plain, sk20 = sk19, inference(predicate_unit_simplification, [], [23, 16])).
+cnf(25, plain, ~(sk19 = sk20), inference(cnf_transformation, [], [4])).
+cnf(26, plain, $false, inference(negative_simplify-reflect, [], [24, 25])).
+% SZS output end Proof
